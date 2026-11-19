@@ -12,11 +12,13 @@ public final class TemplateCheck {
                 + "{'words':['if','else'],'scope':'keyword'},"
                 + "{'begin':'/\\\\*','end':'\\\\*/','scope':'comment.block'},"
                 + "{'match':'#','scope':'string','push':'string'}],"
-                + "'string':[{'match':'#','scope':'string','pop':true}]}}";
+                + "'string':[{'match':'#','scope':'string','pop':true},{'eol':true,'pop':true}]}}";
         LanguageTemplate t = TemplateLoader.load("demo.json", valid.replace('\'', '"'));
         System.out.println(t.id() + " " + t.displayName() + " " + t.extensions() + " " + t.startState()
                 + " " + t.states().keySet() + " " + t.states().get("root").size());
 
+        System.out.println(t.states().get("string").get(1));
+        
         fail("{'version':2,'id':'x','states':{'root':[]}}");
         fail("{'version':1,'id':'x','states':{'root':[{'match':'a','scope':'s','bogus':1}]}}");
         fail("{'version':1,'id':'x','states':{'root':[{'match':'(','scope':'s'}]}}");
@@ -25,6 +27,11 @@ public final class TemplateCheck {
         fail("{'version':1,'id':'x','states':{'root':[{'match':'a'}]}}");
         fail("{'version':1,'states':{}}");
         fail("{'version':1,}");
+        fail("{'version':1,'id':'x','states':{'root':[{'eol':true}]}}");
+        fail("{'version':1,'id':'x','states':{'root':[{'eol':true,'scope':'s','pop':true}]}}");
+        fail("{'version':1,'id':'x','states':{'root':[{'eol':false,'pop':true}]}}");
+        fail("{'version':1,'id':'x','states':{'root':[{'eol':true,'match':'a','pop':true}]}}");
+        fail("{'version':1,'id':'x','states':{'root':[{'eol':true,'push':'nope'}]}}");
     }
 
     private static void fail(String json) {

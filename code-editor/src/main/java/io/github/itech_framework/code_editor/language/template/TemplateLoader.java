@@ -25,8 +25,8 @@ public final class TemplateLoader {
 
     private static final Set<String> TOP_KEYS = Set.of("version", "id", "name", "extensions", "start", "states");
     private static final Set<String> RULE_KEYS =
-            Set.of("match", "words", "begin", "end", "scope", "next", "push", "pop", "caseSensitive");
-
+            Set.of("match", "words", "begin", "end", "eol", "scope", "next", "push", "pop", "caseSensitive");
+    
     private record Reference(String field, String target) {
     }
 
@@ -127,10 +127,23 @@ public final class TemplateLoader {
         boolean hasMatch = map.containsKey("match");
         boolean hasWords = map.containsKey("words");
         boolean hasBegin = map.containsKey("begin");
-        int kinds = (hasMatch ? 1 : 0) + (hasWords ? 1 : 0) + (hasBegin ? 1 : 0);
+        boolean hasEol = map.containsKey("eol");
+        int kinds = (hasMatch ? 1 : 0) + (hasWords ? 1 : 0) + (hasBegin ? 1 : 0) + (hasEol ? 1 : 0);
         if (kinds != 1) {
-            throw fail(path, "needs exactly one of 'match', 'words' or 'begin'");
+            throw fail(path, "needs exactly one of 'match', 'words', 'begin' or 'eol'");
         }
+        if (hasEol) {
+            forbid(map, path, "eol", "scope", "end", "caseSensitive");
+            if (!Boolean.TRUE.equals(map.get("eol"))) {
+                throw fail(join(path, "eol"), "must be true");
+            }
+            StateAction eolAction = action(map, path);
+            if (eolAction.type() == StateAction.Type.NONE) {
+                throw fail(path, "'eol' rules need one of 'next', 'push' or 'pop'");
+            }
+            return new TemplateRule.EndOfLine(eolAction);
+        }
+        
         String scope = string(map, "scope", path, true);
 
         if (hasBegin) {

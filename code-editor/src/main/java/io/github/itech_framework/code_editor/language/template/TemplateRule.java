@@ -15,4 +15,12 @@ public sealed interface TemplateRule {
 
     record Block(Pattern begin, Pattern end, String scope) implements TemplateRule {
     }
+
+    record EndOfLine(StateAction action) implements TemplateRule {
+
+        @Override
+        public String scope() {
+            return null;
+        }
+    }
 }
