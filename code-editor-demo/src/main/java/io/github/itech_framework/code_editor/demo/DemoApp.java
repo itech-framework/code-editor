@@ -1,13 +1,8 @@
 package io.github.itech_framework.code_editor.demo;
 
-import java.util.List;
-
 import io.github.itech_framework.code_editor.CodeEditor;
 import io.github.itech_framework.code_editor.language.EditorLanguage;
 import io.github.itech_framework.code_editor.language.LanguageRegistry;
-import io.github.itech_framework.code_editor.language.LineTokens;
-import io.github.itech_framework.code_editor.language.Tokenizer;
-import io.github.itech_framework.code_editor.language.TokenizerState;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -24,40 +19,29 @@ import javafx.stage.Stage;
 public class DemoApp extends Application {
 
     private static final String SAMPLE = """
+            // Courier request
             {
               "name": "Courier",
               "greeting": "မင်္ဂလာပါ 😀",
-              "items": [1, 2, 3],
-              "active": true
+              "items": [1, 2.5, -3],
+              "active": true,
+              "note": null
             }
+            /* a block comment
+               spanning two lines */
+            if (true) { return 42; }
             """;
-
-    private enum NoState implements TokenizerState {
-        INSTANCE
-    }
-
-    private static final Tokenizer DEMO_TOKENIZER = new Tokenizer() {
-
-        @Override
-        public TokenizerState initialState() {
-            return NoState.INSTANCE;
-        }
-
-        @Override
-        public LineTokens tokenize(String line, TokenizerState state) {
-            return new LineTokens(List.of(), NoState.INSTANCE);
-        }
-    };
 
     @Override
     public void start(Stage stage) {
         LanguageRegistry.getDefault().register(EditorLanguage.builder("demo-custom")
                 .displayName("Demo Custom")
                 .extension("demo")
-                .tokenizer(DEMO_TOKENIZER)
+                .tokenizer(new DemoTokenizer())
                 .build());
 
         CodeEditor editor = new CodeEditor();
+        editor.setLanguage("demo-custom");
         editor.setText(SAMPLE);
 
         CheckBox editable = new CheckBox("Editable");

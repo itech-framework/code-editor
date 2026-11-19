@@ -5,9 +5,12 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.util.UndoUtils;
 
 import io.github.itech_framework.code_editor.internal.FontSupport;
 import io.github.itech_framework.code_editor.internal.LineNumberGutter;
+import io.github.itech_framework.code_editor.internal.SyntaxHighlighter;
+import io.github.itech_framework.code_editor.language.EditorLanguage;
 import io.github.itech_framework.code_editor.language.LanguageRegistry;
 import io.github.itech_framework.code_editor.theme.EditorTheme;
 import io.github.itech_framework.code_editor.theme.ThemeManager;
@@ -50,17 +53,22 @@ public class CodeEditor extends Control {
     private final StringProperty language = new SimpleStringProperty(this, "language", LanguageRegistry.PLAIN_TEXT);
 
     private String appliedStylesheet;
+    
+    private final SyntaxHighlighter highlighter;
 
     public CodeEditor() {
         getStyleClass().add("code-editor");
         setFocusTraversable(false);
         setMinSize(0, 0);
         setPrefSize(600, 400);
+        area.setUndoManager(UndoUtils.plainTextUndoManager(area));
+        highlighter = new SyntaxHighlighter(area, LanguageRegistry.getDefault().require(getLanguage()).getTokenizer());
         showLineNumbers.addListener((obs, old, show) -> updateGutter());
         highlightCurrentLine.addListener((obs, old, show) -> updateCurrentLine());
         fontFamily.addListener((obs, old, value) -> applyFont());
         fontSize.addListener((obs, old, value) -> applyFont());
         theme.addListener((obs, old, value) -> applyTheme());
+        language.addListener((obs, old, value) -> applyLanguage());
         updateGutter();
         updateCurrentLine();
         applyFont();
@@ -228,5 +236,15 @@ public class CodeEditor extends Control {
         }
         getStylesheets().add(stylesheet);
         appliedStylesheet = stylesheet;
+    }
+    
+    private void applyLanguage() {
+        Optional<EditorLanguage> found = LanguageRegistry.getDefault().find(getLanguage());
+        if (found.isEmpty()) {
+            LOG.log(System.Logger.Level.WARNING, "Unknown editor language ''{0}'', keeping the current language",
+                    getLanguage());
+            return;
+        }
+        highlighter.setTokenizer(found.get().getTokenizer());
     }
 }

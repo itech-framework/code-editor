@@ -8,6 +8,23 @@
     -ce-caret: #000000;
     -ce-scroll-thumb: rgba(100, 100, 100, 0.4);
     -ce-scroll-thumb-hover: rgba(100, 100, 100, 0.7);
+    
+    -ce-token-keyword: #0000ff;
+    -ce-token-keyword-control: #af00db;
+    -ce-token-string: #a31515;
+    -ce-token-string-escape: #ee0000;
+    -ce-token-number: #098658;
+    -ce-token-comment: #008000;
+    -ce-token-type: #267f99;
+    -ce-token-function: #795e26;
+    -ce-token-variable: #001080;
+    -ce-token-constant: #0070c1;
+    -ce-token-operator: #000000;
+    -ce-token-punctuation: #000000;
+    -ce-token-regexp: #811f3f;
+    -ce-token-tag: #800000;
+    -ce-token-attribute: #e50000;
+    -ce-token-invalid: #cd3131;
 
     -fx-background-color: -ce-background;
 }
@@ -80,3 +97,21 @@
     -fx-padding: 0;
     -fx-shape: " ";
 }
+
+
+.code-editor .code-area .text.tok-keyword { -fx-fill: -ce-token-keyword; }
+.code-editor .code-area .text.tok-keyword-control { -fx-fill: -ce-token-keyword-control; }
+.code-editor .code-area .text.tok-string { -fx-fill: -ce-token-string; }
+.code-editor .code-area .text.tok-string-escape { -fx-fill: -ce-token-string-escape; }
+.code-editor .code-area .text.tok-number { -fx-fill: -ce-token-number; }
+.code-editor .code-area .text.tok-comment { -fx-fill: -ce-token-comment; }
+.code-editor .code-area .text.tok-type { -fx-fill: -ce-token-type; }
+.code-editor .code-area .text.tok-function { -fx-fill: -ce-token-function; }
+.code-editor .code-area .text.tok-variable { -fx-fill: -ce-token-variable; }
+.code-editor .code-area .text.tok-constant { -fx-fill: -ce-token-constant; }
+.code-editor .code-area .text.tok-operator { -fx-fill: -ce-token-operator; }
+.code-editor .code-area .text.tok-punctuation { -fx-fill: -ce-token-punctuation; }
+.code-editor .code-area .text.tok-regexp { -fx-fill: -ce-token-regexp; }
+.code-editor .code-area .text.tok-tag { -fx-fill: -ce-token-tag; }
+.code-editor .code-area .text.tok-attribute { -fx-fill: -ce-token-attribute; }
+.code-editor .code-area .text.tok-invalid { -fx-fill: -ce-token-invalid; }
