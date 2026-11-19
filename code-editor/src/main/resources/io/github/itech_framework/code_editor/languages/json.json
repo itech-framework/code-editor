@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "id": "json",
+  "name": "JSON",
+  "extensions": ["json", "jsonc"],
+  "states": {
+    "root": [
+      { "match": "//.*", "scope": "comment.line" },
+      { "begin": "/\\*", "end": "\\*/", "scope": "comment.block" },
+      { "match": "\"[^\"\\\\]*+(?:\\\\.[^\"\\\\]*+)*+\"(?=\\s*:)", "scope": "variable.property" },
+      { "match": "\"[^\"\\\\]*+(?:\\\\.[^\"\\\\]*+)*+\"?", "scope": "string" },
+      { "match": "-?\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?", "scope": "number" },
+      { "words": ["true", "false", "null"], "scope": "constant.language" },
+      { "match": "[{}\\[\\],:]", "scope": "punctuation" }
+    ]
+  }
+}

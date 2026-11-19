@@ -8,4 +8,21 @@
     -ce-caret: #aeafad;
     -ce-scroll-thumb: rgba(121, 121, 121, 0.4);
     -ce-scroll-thumb-hover: rgba(100, 100, 100, 0.7);
+
+    -ce-token-keyword: #569cd6;
+    -ce-token-keyword-control: #c586c0;
+    -ce-token-string: #ce9178;
+    -ce-token-string-escape: #d7ba7d;
+    -ce-token-number: #b5cea8;
+    -ce-token-comment: #6a9955;
+    -ce-token-type: #4ec9b0;
+    -ce-token-function: #dcdcaa;
+    -ce-token-variable: #9cdcfe;
+    -ce-token-constant: #4fc1ff;
+    -ce-token-operator: #d4d4d4;
+    -ce-token-punctuation: #d4d4d4;
+    -ce-token-regexp: #d16969;
+    -ce-token-tag: #569cd6;
+    -ce-token-attribute: #9cdcfe;
+    -ce-token-invalid: #f44747;
 }

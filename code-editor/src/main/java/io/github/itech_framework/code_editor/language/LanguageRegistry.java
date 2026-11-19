@@ -10,9 +10,13 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.github.itech_framework.code_editor.language.template.TemplateLanguages;
+
 public final class LanguageRegistry {
 
     public static final String PLAIN_TEXT = "plaintext";
+
+    private static final List<String> BUILT_IN = List.of("json.json", "javascript.json");
 
     private static final LanguageRegistry DEFAULT = new LanguageRegistry();
 
@@ -24,6 +28,9 @@ public final class LanguageRegistry {
                 .extension("txt")
                 .tokenizer(new PlainTextTokenizer())
                 .build());
+        for (String file : BUILT_IN) {
+            register(TemplateLanguages.fromResource(file));
+        }
     }
 
     public static LanguageRegistry getDefault() {
