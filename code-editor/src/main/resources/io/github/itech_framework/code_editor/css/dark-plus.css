@@ -1,0 +1,11 @@
+.code-editor {
+    -ce-background: #1e1e1e;
+    -ce-foreground: #d4d4d4;
+    -ce-line-number: #858585;
+    -ce-line-number-active: #c6c6c6;
+    -ce-current-line: #282828;
+    -ce-selection: #264f78;
+    -ce-caret: #aeafad;
+    -ce-scroll-thumb: rgba(121, 121, 121, 0.4);
+    -ce-scroll-thumb-hover: rgba(100, 100, 100, 0.7);
+}

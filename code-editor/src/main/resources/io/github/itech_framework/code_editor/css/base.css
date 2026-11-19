@@ -1,0 +1,82 @@
+.code-editor {
+    -ce-background: #ffffff;
+    -ce-foreground: #000000;
+    -ce-line-number: #237893;
+    -ce-line-number-active: #0b216f;
+    -ce-current-line: #f0f0f0;
+    -ce-selection: #add6ff;
+    -ce-caret: #000000;
+    -ce-scroll-thumb: rgba(100, 100, 100, 0.4);
+    -ce-scroll-thumb-hover: rgba(100, 100, 100, 0.7);
+
+    -fx-background-color: -ce-background;
+}
+
+.code-editor .code-area {
+    -fx-background-color: -ce-background;
+}
+
+.code-editor .code-area .text {
+    -fx-fill: -ce-foreground;
+}
+
+.code-editor .code-area .caret {
+    -fx-stroke: -ce-caret;
+}
+
+.code-editor .code-area .selection {
+    -fx-fill: -ce-selection;
+}
+
+.code-editor .code-editor-line-number {
+    -fx-padding: 0 10 0 14;
+    -fx-text-fill: -ce-line-number;
+}
+
+.code-editor .paragraph-box:has-caret {
+    -fx-background-color: -ce-current-line;
+}
+
+.code-editor .paragraph-box:has-caret .code-editor-line-number {
+    -fx-text-fill: -ce-line-number-active;
+}
+
+.code-editor.no-current-line .paragraph-box:has-caret {
+    -fx-background-color: transparent;
+}
+
+.code-editor.no-current-line .paragraph-box:has-caret .code-editor-line-number {
+    -fx-text-fill: -ce-line-number;
+}
+
+.code-editor .scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.code-editor .scroll-bar .track {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.code-editor .scroll-bar .thumb {
+    -fx-background-color: -ce-scroll-thumb;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+}
+
+.code-editor .scroll-bar .thumb:hover {
+    -fx-background-color: -ce-scroll-thumb-hover;
+}
+
+.code-editor .scroll-bar > .increment-button,
+.code-editor .scroll-bar > .decrement-button {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.code-editor .scroll-bar .increment-arrow,
+.code-editor .scroll-bar .decrement-arrow {
+    -fx-padding: 0;
+    -fx-shape: " ";
+}
