@@ -4,6 +4,7 @@ import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 
 import io.github.itech_framework.code_editor.internal.FindPanel;
+import io.github.itech_framework.code_editor.internal.GoToLinePanel;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.SkinBase;
@@ -18,10 +19,13 @@ final class CodeEditorSkin extends SkinBase<CodeEditor> {
     CodeEditorSkin(CodeEditor editor) {
         super(editor);
         this.scrollPane = new VirtualizedScrollPane<>(editor.area());
-        FindPanel panel = editor.findPanel();
-        StackPane.setAlignment(panel, Pos.TOP_RIGHT);
-        StackPane.setMargin(panel, new Insets(8, 24, 0, 0));
-        stack.getChildren().addAll(scrollPane, panel);
+        FindPanel findPanel = editor.findPanel();
+        StackPane.setAlignment(findPanel, Pos.TOP_RIGHT);
+        StackPane.setMargin(findPanel, new Insets(8, 24, 0, 0));
+        GoToLinePanel goToPanel = editor.goToLinePanel();
+        StackPane.setAlignment(goToPanel, Pos.TOP_CENTER);
+        StackPane.setMargin(goToPanel, new Insets(8, 0, 0, 0));
+        stack.getChildren().addAll(scrollPane, findPanel, goToPanel);
         getChildren().add(stack);
     }
 

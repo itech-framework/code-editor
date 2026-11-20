@@ -20,6 +20,7 @@ public final class TemplateLanguages {
                 .displayName(template.displayName())
                 .extensions(template.extensions())
                 .autoClosingPairs(template.autoClosingPairs())
+                .lineComment(template.lineComment())
                 .tokenizer(new TemplateTokenizer(template))
                 .build();
     }

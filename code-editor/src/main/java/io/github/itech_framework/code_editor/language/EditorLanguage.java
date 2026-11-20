@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 
 public final class EditorLanguage {
 
@@ -13,6 +14,7 @@ public final class EditorLanguage {
     private final List<String> extensions;
     private final Tokenizer tokenizer;
     private final List<BracketPair> autoClosingPairs;
+    private final String lineComment;
 
     private EditorLanguage(Builder builder) {
         this.id = builder.id;
@@ -22,6 +24,7 @@ public final class EditorLanguage {
         this.autoClosingPairs = builder.autoClosingPairs == null
                 ? BracketPair.DEFAULT_AUTO_CLOSING
                 : List.copyOf(builder.autoClosingPairs);
+        this.lineComment = builder.lineComment;
     }
 
     public static Builder builder(String id) {
@@ -46,6 +49,10 @@ public final class EditorLanguage {
 
     public List<BracketPair> getAutoClosingPairs() {
         return autoClosingPairs;
+    }
+
+    public Optional<String> getLineComment() {
+        return Optional.ofNullable(lineComment);
     }
 
     static String normalizeId(String id) {
@@ -76,6 +83,7 @@ public final class EditorLanguage {
         private final List<String> extensions = new ArrayList<>();
         private Tokenizer tokenizer;
         private List<BracketPair> autoClosingPairs;
+        private String lineComment;
 
         private Builder(String id) {
             this.id = normalizeId(id);
@@ -108,6 +116,19 @@ public final class EditorLanguage {
         public Builder autoClosingPairs(Collection<BracketPair> pairs) {
             Objects.requireNonNull(pairs, "pairs");
             this.autoClosingPairs = new ArrayList<>(pairs);
+            return this;
+        }
+
+        public Builder lineComment(String prefix) {
+            if (prefix == null) {
+                this.lineComment = null;
+                return this;
+            }
+            String value = prefix.trim();
+            if (value.isEmpty() || value.indexOf('\n') >= 0 || value.indexOf('\r') >= 0) {
+                throw new IllegalArgumentException("Line comment must be a non-blank single line");
+            }
+            this.lineComment = value;
             return this;
         }
 

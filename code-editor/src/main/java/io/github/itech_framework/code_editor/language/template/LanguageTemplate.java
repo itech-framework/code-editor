@@ -14,6 +14,7 @@ public record LanguageTemplate(
         List<String> extensions,
         String startState,
         List<BracketPair> autoClosingPairs,
+        String lineComment,
         Map<String, List<TemplateRule>> states) {
 
     public LanguageTemplate {

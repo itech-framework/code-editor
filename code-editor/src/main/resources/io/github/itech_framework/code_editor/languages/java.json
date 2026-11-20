@@ -3,6 +3,7 @@
   "id": "java",
   "name": "Java",
   "extensions": ["java"],
+  "lineComment": "//",
   "states": {
     "root": [
       { "match": "//.*", "scope": "comment.line" },

@@ -4,6 +4,7 @@
   "name": "JavaScript",
   "extensions": ["js", "mjs", "cjs"],
   "autoClosingPairs": [["(", ")"], ["[", "]"], ["{", "}"], ["\"", "\""], ["'", "'"], ["`", "`"]],
+  "lineComment": "//",
   "states": {
     "root": [
       { "match": "//.*", "scope": "comment.line" },

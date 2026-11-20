@@ -17,9 +17,13 @@ import io.github.itech_framework.code_editor.feature.AutoCloseFeature;
 import io.github.itech_framework.code_editor.feature.AutoIndentFeature;
 import io.github.itech_framework.code_editor.feature.BracketMatchFeature;
 import io.github.itech_framework.code_editor.feature.FindFeature;
+import io.github.itech_framework.code_editor.feature.GoToLineFeature;
+import io.github.itech_framework.code_editor.feature.LineEditFeature;
 import io.github.itech_framework.code_editor.feature.TabFeature;
 import io.github.itech_framework.code_editor.internal.FindPanel;
 import io.github.itech_framework.code_editor.internal.FontSupport;
+import io.github.itech_framework.code_editor.internal.GoToLineLogic;
+import io.github.itech_framework.code_editor.internal.GoToLinePanel;
 import io.github.itech_framework.code_editor.internal.LineNumberGutter;
 import io.github.itech_framework.code_editor.internal.SyntaxHighlighter;
 import io.github.itech_framework.code_editor.language.EditorLanguage;
@@ -78,6 +82,8 @@ public class CodeEditor extends Control {
     private final EditorFeatures features = new EditorFeatures(this);
     
     private final FindPanel findPanel = new FindPanel();
+    
+    private final GoToLinePanel goToLinePanel = new GoToLinePanel();
 
     private String appliedStylesheet;
 
@@ -103,11 +109,15 @@ public class CodeEditor extends Control {
         
         findPanel.setOnClose(this::closeFindPanel);
         
+        goToLinePanel.setOnClose(this::closeGoToLinePanel);
+        
         features.register(new AutoIndentFeature());
         features.register(new AutoCloseFeature());
         features.register(new TabFeature());
         features.register(new BracketMatchFeature());
         features.register(new FindFeature());
+        features.register(new GoToLineFeature());
+        features.register(new LineEditFeature());
     }
 
     public final String getText() {
@@ -392,6 +402,31 @@ public class CodeEditor extends Control {
 
     private void closeFindPanel() {
         setFindPanelVisible(false);
+        area.requestFocus();
+    }
+    
+    public final GoToLinePanel goToLinePanel() {
+        return goToLinePanel;
+    }
+
+    public final boolean isGoToLineVisible() {
+        return goToLinePanel.isVisible();
+    }
+
+    public final void setGoToLineVisible(boolean visible) {
+        goToLinePanel.setVisible(visible);
+    }
+
+    public final void goToLine(int line, int column) {
+        int index = Math.min(Math.max(line, 1), getLineCount()) - 1;
+        int offset = GoToLineLogic.offset(getLineStart(index), getLineText(index).length(), column);
+        area.moveTo(offset);
+        area.showParagraphAtCenter(index);
+        area.requestFocus();
+    }
+
+    private void closeGoToLinePanel() {
+        setGoToLineVisible(false);
         area.requestFocus();
     }
 

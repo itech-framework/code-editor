@@ -25,7 +25,7 @@ public final class TemplateLoader {
     public static final String DEFAULT_START = "root";
 
     private static final Set<String> TOP_KEYS =
-            Set.of("version", "id", "name", "extensions", "start", "autoClosingPairs", "states");
+            Set.of("version", "id", "name", "extensions", "start", "autoClosingPairs", "lineComment", "states");
     
     private static final Set<String> RULE_KEYS =
             Set.of("match", "words", "begin", "end", "eol", "scope", "next", "push", "pop", "caseSensitive");
@@ -122,7 +122,14 @@ public final class TemplateLoader {
         }
         
         List<BracketPair> pairs = autoClosingPairs(map.get("autoClosingPairs"));
-        return new LanguageTemplate(SUPPORTED_VERSION, id, displayName, extensions, start, pairs, states);
+        String lineComment = string(map, "lineComment", "", false);
+        if (lineComment != null) {
+            lineComment = lineComment.trim();
+            if (lineComment.indexOf('\n') >= 0 || lineComment.indexOf('\r') >= 0) {
+                throw fail("lineComment", "must be a single line");
+            }
+        }
+        return new LanguageTemplate(SUPPORTED_VERSION, id, displayName, extensions, start, pairs, lineComment, states);
     }
 
     private List<BracketPair> autoClosingPairs(Object value) {
