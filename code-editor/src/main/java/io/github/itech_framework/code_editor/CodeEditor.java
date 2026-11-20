@@ -22,7 +22,9 @@ import io.github.itech_framework.code_editor.feature.FindFeature;
 import io.github.itech_framework.code_editor.feature.FoldFeature;
 import io.github.itech_framework.code_editor.feature.GoToLineFeature;
 import io.github.itech_framework.code_editor.feature.LineEditFeature;
+import io.github.itech_framework.code_editor.feature.MultiCaretFeature;
 import io.github.itech_framework.code_editor.feature.TabFeature;
+import io.github.itech_framework.code_editor.internal.ExtraCarets;
 import io.github.itech_framework.code_editor.internal.FindPanel;
 import io.github.itech_framework.code_editor.internal.FoldMarkers;
 import io.github.itech_framework.code_editor.internal.FoldState;
@@ -46,6 +48,7 @@ import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.event.Event;
+import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.control.Control;
 import javafx.scene.control.IndexRange;
@@ -95,6 +98,8 @@ public class CodeEditor extends Control {
 
     private final FoldMarkers foldMarkers = new FoldMarkers(area, FoldFeature.HEADER_CLASS, line -> toggleFold(line));
 
+    private final ExtraCarets extraCarets = new ExtraCarets(area);
+
     private String appliedStylesheet;
 
     private final SyntaxHighlighter highlighter;
@@ -136,6 +141,7 @@ public class CodeEditor extends Control {
         features.register(new GoToLineFeature());
         features.register(new LineEditFeature());
         features.register(new FoldFeature());
+        features.register(new MultiCaretFeature());
     }
 
     public final String getText() {
@@ -143,6 +149,7 @@ public class CodeEditor extends Control {
     }
 
     public final void setText(String text) {
+        extraCarets.clear();
         area.replaceText(text == null ? "" : text);
         area.getUndoManager().forgetHistory();
     }
@@ -232,6 +239,34 @@ public class CodeEditor extends Control {
             }
         }
         return false;
+    }
+    
+    public final boolean addExtraCaret(int position) {
+        return extraCarets.add(position);
+    }
+
+    public final void toggleExtraCaret(int position) {
+        extraCarets.toggle(position);
+    }
+
+    public final void clearExtraCarets() {
+        extraCarets.clear();
+    }
+
+    public final boolean hasExtraCarets() {
+        return !extraCarets.isEmpty();
+    }
+
+    public final List<Integer> getCaretPositions() {
+        List<Integer> positions = new ArrayList<>();
+        positions.add(area.getCaretPosition());
+        positions.addAll(extraCarets.positions());
+        return positions;
+    }
+
+    public final int offsetAt(double screenX, double screenY) {
+        Point2D point = area.screenToLocal(screenX, screenY);
+        return area.hit(point.getX(), point.getY()).getInsertionIndex();
     }
 
     public final boolean isFindPanelVisible() {
