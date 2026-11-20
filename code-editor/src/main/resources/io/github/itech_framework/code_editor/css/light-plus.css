@@ -1,0 +1,30 @@
+.code-editor {
+    -ce-background: #ffffff;
+    -ce-foreground: #000000;
+    -ce-line-number: #237893;
+    -ce-line-number-active: #0b216f;
+    -ce-current-line: #f0f0f0;
+    -ce-selection: #add6ff;
+    -ce-caret: #000000;
+    -ce-scroll-thumb: rgba(100, 100, 100, 0.4);
+    -ce-scroll-thumb-hover: rgba(100, 100, 100, 0.7);
+    -ce-bracket-match: rgba(0, 100, 0, 0.12);
+    -ce-bracket-match-border: #b9b9b9;
+
+    -ce-token-keyword: #0000ff;
+    -ce-token-keyword-control: #af00db;
+    -ce-token-string: #a31515;
+    -ce-token-string-escape: #ee0000;
+    -ce-token-number: #098658;
+    -ce-token-comment: #008000;
+    -ce-token-type: #267f99;
+    -ce-token-function: #795e26;
+    -ce-token-variable: #001080;
+    -ce-token-constant: #0070c1;
+    -ce-token-operator: #000000;
+    -ce-token-punctuation: #000000;
+    -ce-token-regexp: #811f3f;
+    -ce-token-tag: #800000;
+    -ce-token-attribute: #e50000;
+    -ce-token-invalid: #cd3131;
+}

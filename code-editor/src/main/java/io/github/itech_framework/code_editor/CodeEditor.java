@@ -1,15 +1,19 @@
 package io.github.itech_framework.code_editor;
 
 import java.net.URL;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
 
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.TwoDimensional.Bias;
 import org.fxmisc.richtext.util.UndoUtils;
+import org.reactfx.Subscription;
 
 import io.github.itech_framework.code_editor.feature.AutoCloseFeature;
 import io.github.itech_framework.code_editor.feature.AutoIndentFeature;
+import io.github.itech_framework.code_editor.feature.BracketMatchFeature;
+import io.github.itech_framework.code_editor.feature.TabFeature;
 import io.github.itech_framework.code_editor.internal.FontSupport;
 import io.github.itech_framework.code_editor.internal.LineNumberGutter;
 import io.github.itech_framework.code_editor.internal.SyntaxHighlighter;
@@ -89,6 +93,8 @@ public class CodeEditor extends Control {
         applyTheme();
         features.register(new AutoIndentFeature());
         features.register(new AutoCloseFeature());
+        features.register(new TabFeature());
+        features.register(new BracketMatchFeature());
     }
 
     public final String getText() {
@@ -135,6 +141,31 @@ public class CodeEditor extends Control {
 
     public final void replaceText(int start, int end, String text) {
         area.replaceText(start, end, text == null ? "" : text);
+    }
+    
+    @FunctionalInterface
+    public interface TextChangeListener {
+
+        void onChange(int position, int removedLength, int insertedLength);
+    }
+
+    public final ObservableValue<Integer> caretPositionProperty() {
+        return area.caretPositionProperty();
+    }
+
+    public final Collection<String> getStyleClassesAt(int offset) {
+        return area.getStyleOfChar(offset);
+    }
+
+    public final void setStyleClasses(int start, int end, Collection<String> classes) {
+        area.setStyle(start, end, classes);
+    }
+
+    public final Runnable addTextChangeListener(TextChangeListener listener) {
+        Objects.requireNonNull(listener, "listener");
+        Subscription subscription = area.plainTextChanges().subscribe(change -> listener.onChange(
+                change.getPosition(), change.getRemoved().length(), change.getInserted().length()));
+        return subscription::unsubscribe;
     }
 
     public final int getLineCount() {

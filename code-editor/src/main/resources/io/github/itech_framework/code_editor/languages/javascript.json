@@ -3,6 +3,7 @@
   "id": "javascript",
   "name": "JavaScript",
   "extensions": ["js", "mjs", "cjs"],
+  "autoClosingPairs": [["(", ")"], ["[", "]"], ["{", "}"], ["\"", "\""], ["'", "'"], ["`", "`"]],
   "states": {
     "root": [
       { "match": "//.*", "scope": "comment.line" },

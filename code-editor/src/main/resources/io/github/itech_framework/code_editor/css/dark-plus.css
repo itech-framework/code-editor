@@ -25,4 +25,6 @@
     -ce-token-tag: #569cd6;
     -ce-token-attribute: #9cdcfe;
     -ce-token-invalid: #f44747;
+    -ce-bracket-match: rgba(120, 180, 120, 0.35);
+    -ce-bracket-match-border: #888888;
 }

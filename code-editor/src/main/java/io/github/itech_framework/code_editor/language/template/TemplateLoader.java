@@ -1,8 +1,5 @@
 package io.github.itech_framework.code_editor.language.template;
 
-import io.github.itech_framework.code_editor.internal.json.JsonException;
-import io.github.itech_framework.code_editor.internal.json.JsonReader;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -18,12 +15,18 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import io.github.itech_framework.code_editor.internal.json.JsonException;
+import io.github.itech_framework.code_editor.internal.json.JsonReader;
+import io.github.itech_framework.code_editor.language.BracketPair;
+
 public final class TemplateLoader {
 
     public static final int SUPPORTED_VERSION = 1;
     public static final String DEFAULT_START = "root";
 
-    private static final Set<String> TOP_KEYS = Set.of("version", "id", "name", "extensions", "start", "states");
+    private static final Set<String> TOP_KEYS =
+            Set.of("version", "id", "name", "extensions", "start", "autoClosingPairs", "states");
+    
     private static final Set<String> RULE_KEYS =
             Set.of("match", "words", "begin", "end", "eol", "scope", "next", "push", "pop", "caseSensitive");
     
@@ -117,7 +120,40 @@ public final class TemplateLoader {
                 throw fail(reference.field(), unknownState(reference.target(), states.keySet()));
             }
         }
-        return new LanguageTemplate(SUPPORTED_VERSION, id, displayName, extensions, start, states);
+        
+        List<BracketPair> pairs = autoClosingPairs(map.get("autoClosingPairs"));
+        return new LanguageTemplate(SUPPORTED_VERSION, id, displayName, extensions, start, pairs, states);
+    }
+
+    private List<BracketPair> autoClosingPairs(Object value) {
+        if (value == null) {
+            return BracketPair.DEFAULT_AUTO_CLOSING;
+        }
+        List<Object> list = array(value, "autoClosingPairs");
+        List<BracketPair> pairs = new ArrayList<>();
+        Set<Character> opened = new LinkedHashSet<>();
+        for (int i = 0; i < list.size(); i++) {
+            String field = "autoClosingPairs[" + i + "]";
+            Object item = list.get(i);
+            if (!(item instanceof List<?> pair) || pair.size() != 2) {
+                throw fail(field, "must be an array of two strings: the opening and the closing character");
+            }
+            char[] chars = new char[2];
+            for (int j = 0; j < 2; j++) {
+                if (!(pair.get(j) instanceof String text) || text.length() != 1) {
+                    throw fail(field + "[" + j + "]", "must be a string of exactly one character");
+                }
+                chars[j] = text.charAt(0);
+            }
+            if (Character.isWhitespace(chars[0]) || Character.isWhitespace(chars[1])) {
+                throw fail(field, "characters must not be whitespace");
+            }
+            if (!opened.add(chars[0])) {
+                throw fail(field, "duplicate opening character '" + chars[0] + "'");
+            }
+            pairs.add(new BracketPair(chars[0], chars[1]));
+        }
+        return pairs;
     }
 
     private TemplateRule rule(Object value, String path) {

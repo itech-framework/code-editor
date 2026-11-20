@@ -19,6 +19,7 @@ public final class TemplateLanguages {
         return EditorLanguage.builder(template.id())
                 .displayName(template.displayName())
                 .extensions(template.extensions())
+                .autoClosingPairs(template.autoClosingPairs())
                 .tokenizer(new TemplateTokenizer(template))
                 .build();
     }

@@ -11,11 +11,15 @@ public final class ThemeManager {
 
     public static final String DARK_PLUS = "dark-plus";
 
+    public static final String LIGHT_PLUS = "light-plus";
+
     private static final Map<String, EditorTheme> THEMES = new ConcurrentHashMap<>();
 
     static {
         register(EditorTheme.ofResource(DARK_PLUS, "Dark+", true, ThemeManager.class,
                 "/io/github/itech_framework/code_editor/css/dark-plus.css"));
+        register(EditorTheme.ofResource(LIGHT_PLUS, "Light+", false, ThemeManager.class,
+                "/io/github/itech_framework/code_editor/css/light-plus.css"));
     }
 
     private ThemeManager() {

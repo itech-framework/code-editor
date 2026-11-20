@@ -16,6 +16,7 @@ import io.github.itech_framework.code_editor.language.template.LanguageTemplate;
 import io.github.itech_framework.code_editor.language.template.TemplateException;
 import io.github.itech_framework.code_editor.language.template.TemplateLanguages;
 import io.github.itech_framework.code_editor.language.template.TemplateLoader;
+import io.github.itech_framework.code_editor.theme.ThemeManager;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -125,6 +126,14 @@ public class DemoApp extends Application {
 
         Spinner<Integer> size = new Spinner<>(8, 40, 14);
         size.valueProperty().addListener((obs, old, value) -> editor.setFontSize(value));
+        
+        ComboBox<String> theme = new ComboBox<>(FXCollections.observableArrayList(ThemeManager.ids()));
+        theme.setValue(editor.getTheme());
+        theme.valueProperty().addListener((obs, old, value) -> {
+            if (value != null) {
+                editor.setTheme(value);
+            }
+        });
 
         Label status = new Label();
         Runnable refresh = () -> status.setText(editor.getLength() + " chars | language: " + editor.getLanguage());
@@ -185,7 +194,9 @@ public class DemoApp extends Application {
         });
 
         ToolBar bar = new ToolBar(editable, lineNumbers, currentLine, autoIndent, autoClose, new Label("Tab size"),
-                tabSize, spaces, new Label("Font size"), size, new Label("Language"), language, unknown, sample, load);
+                tabSize, spaces, new Label("Font size"), size, new Label("Theme"), theme, new Label("Language"),
+                language, unknown, sample, load);
+        
         BorderPane root = new BorderPane(editor);
         root.setTop(bar);
         root.setBottom(status);
@@ -193,6 +204,7 @@ public class DemoApp extends Application {
 
         stage.setTitle("Code Editor Demo");
         stage.setScene(new Scene(root, 1300, 650));
+        stage.setMaximized(true);
         stage.show();
     }
 }

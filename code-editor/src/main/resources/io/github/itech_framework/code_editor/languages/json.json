@@ -3,6 +3,7 @@
   "id": "json",
   "name": "JSON",
   "extensions": ["json", "jsonc"],
+  "autoClosingPairs": [["[", "]"], ["{", "}"], ["\"", "\""]],
   "states": {
     "root": [
       { "match": "//.*", "scope": "comment.line" },
