@@ -201,7 +201,7 @@
     -fx-border-width: 1;
     -fx-padding: 4 6 4 6;
     -fx-spacing: 4;
-    -fx-alignment: center-left;
+    -fx-alignment: top-left;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 8, 0, 0, 2);
 }
 
@@ -295,4 +295,58 @@
 
 .code-editor .find-panel .find-status.find-error {
     -fx-text-fill: -ce-find-error;
+}
+
+
+.code-editor .find-panel .find-rows {
+    -fx-spacing: 4;
+}
+
+.code-editor .find-panel .find-row {
+    -fx-spacing: 4;
+    -fx-alignment: center-left;
+}
+
+.code-editor .find-panel .find-expand {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3;
+    -fx-padding: 8 5 8 3;
+    -fx-cursor: hand;
+}
+
+.code-editor .find-panel .find-expand:hover {
+    -fx-background-color: -ce-find-hover;
+}
+
+.code-editor .find-panel .find-expand:selected .find-icon {
+    -fx-rotate: 90;
+}
+
+.code-editor .find-panel .find-icon-right {
+    -fx-shape: "M 1 0 L 0 1 L 4 5 L 0 9 L 1 10 L 6 5 Z";
+    -fx-min-width: 6px;
+    -fx-pref-width: 6px;
+    -fx-max-width: 6px;
+}
+
+.code-editor .find-panel .find-text-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3;
+    -fx-border-color: -ce-find-field-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+    -fx-text-fill: -ce-find-foreground;
+    -fx-font-size: 12px;
+    -fx-padding: 3 8 3 8;
+    -fx-cursor: hand;
+}
+
+.code-editor .find-panel .find-text-button:hover {
+    -fx-background-color: -ce-find-hover;
+}
+
+.code-editor .find-panel .find-text-button:armed {
+    -fx-background-color: -ce-find-active;
 }

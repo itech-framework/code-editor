@@ -70,6 +70,17 @@ public final class FindLogic {
             return text.toString();
         }
     }
+    
+    public record Replacement(int start, int end, String text, int count, String error) {
+
+        static Replacement none() {
+            return new Replacement(0, 0, "", 0, null);
+        }
+
+        static Replacement failure(String error) {
+            return new Replacement(0, 0, "", 0, error);
+        }
+    }
 
     private FindLogic() {
     }
@@ -102,6 +113,77 @@ public final class FindLogic {
             return new Result(List.of(), "Search took too long", false);
         }
         return new Result(matches, null, truncated);
+    }
+    
+    public static Replacement replaceAll(CharSequence text, String query, Options options, String replacement) {
+        if (query == null || query.isEmpty()) {
+            return Replacement.none();
+        }
+        Pattern pattern;
+        try {
+            pattern = compile(query, options);
+        } catch (PatternSyntaxException ex) {
+            return Replacement.failure(ex.getDescription());
+        }
+        String template = options.regex() ? replacement : Matcher.quoteReplacement(replacement);
+        try {
+            Matcher matcher = pattern.matcher(new Budget(text));
+            StringBuilder out = new StringBuilder();
+            int first = -1;
+            int last = -1;
+            int count = 0;
+            while (matcher.find()) {
+                if (matcher.end() == matcher.start()) {
+                    continue;
+                }
+                if (first < 0) {
+                    first = matcher.start();
+                }
+                last = matcher.end();
+                matcher.appendReplacement(out, template);
+                count++;
+            }
+            if (count == 0) {
+                return Replacement.none();
+            }
+            matcher.appendTail(out);
+            String span = out.substring(first, out.length() - (text.length() - last));
+            return new Replacement(first, last, span, count, null);
+        } catch (BudgetExceeded ex) {
+            return Replacement.failure("Search took too long");
+        } catch (IllegalArgumentException | IndexOutOfBoundsException ex) {
+            return Replacement.failure("Invalid replacement: " + ex.getMessage());
+        }
+    }
+
+    public static Replacement replaceOne(CharSequence text, String query, Options options, String replacement,
+            int start, int end) {
+        if (query == null || query.isEmpty() || start < 0 || end <= start || end > text.length()) {
+            return Replacement.none();
+        }
+        Pattern pattern;
+        try {
+            pattern = compile(query, options);
+        } catch (PatternSyntaxException ex) {
+            return Replacement.failure(ex.getDescription());
+        }
+        String template = options.regex() ? replacement : Matcher.quoteReplacement(replacement);
+        try {
+            Matcher matcher = pattern.matcher(new Budget(text));
+            matcher.useTransparentBounds(true);
+            matcher.useAnchoringBounds(false);
+            matcher.region(start, text.length());
+            if (!matcher.lookingAt() || matcher.end() != end) {
+                return Replacement.none();
+            }
+            StringBuilder out = new StringBuilder();
+            matcher.appendReplacement(out, template);
+            return new Replacement(start, end, out.substring(start), 1, null);
+        } catch (BudgetExceeded ex) {
+            return Replacement.failure("Search took too long");
+        } catch (IllegalArgumentException | IndexOutOfBoundsException ex) {
+            return Replacement.failure("Invalid replacement: " + ex.getMessage());
+        }
     }
 
     public static int nextIndex(List<int[]> matches, int offset) {
