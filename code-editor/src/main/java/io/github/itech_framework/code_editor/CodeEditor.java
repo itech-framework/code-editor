@@ -5,8 +5,11 @@ import java.util.Objects;
 import java.util.Optional;
 
 import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.model.TwoDimensional.Bias;
 import org.fxmisc.richtext.util.UndoUtils;
 
+import io.github.itech_framework.code_editor.feature.AutoCloseFeature;
+import io.github.itech_framework.code_editor.feature.AutoIndentFeature;
 import io.github.itech_framework.code_editor.internal.FontSupport;
 import io.github.itech_framework.code_editor.internal.LineNumberGutter;
 import io.github.itech_framework.code_editor.internal.SyntaxHighlighter;
@@ -16,12 +19,15 @@ import io.github.itech_framework.code_editor.theme.EditorTheme;
 import io.github.itech_framework.code_editor.theme.ThemeManager;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Control;
+import javafx.scene.control.IndexRange;
 import javafx.scene.control.Skin;
 
 public class CodeEditor extends Control {
@@ -29,6 +35,8 @@ public class CodeEditor extends Control {
     public static final String DEFAULT_FONT_FAMILY = "JetBrains Mono, Cascadia Code, Consolas, Menlo, DejaVu Sans Mono, monospace";
 
     public static final double DEFAULT_FONT_SIZE = 14;
+
+    public static final int DEFAULT_TAB_SIZE = 4;
 
     private static final System.Logger LOG = System.getLogger(CodeEditor.class.getName());
 
@@ -52,8 +60,14 @@ public class CodeEditor extends Control {
 
     private final StringProperty language = new SimpleStringProperty(this, "language", LanguageRegistry.PLAIN_TEXT);
 
+    private final IntegerProperty tabSize = new SimpleIntegerProperty(this, "tabSize", DEFAULT_TAB_SIZE);
+
+    private final BooleanProperty insertSpaces = new SimpleBooleanProperty(this, "insertSpaces", true);
+
+    private final EditorFeatures features = new EditorFeatures(this);
+
     private String appliedStylesheet;
-    
+
     private final SyntaxHighlighter highlighter;
 
     public CodeEditor() {
@@ -73,6 +87,8 @@ public class CodeEditor extends Control {
         updateCurrentLine();
         applyFont();
         applyTheme();
+        features.register(new AutoIndentFeature());
+        features.register(new AutoCloseFeature());
     }
 
     public final String getText() {
@@ -90,6 +106,51 @@ public class CodeEditor extends Control {
 
     public final int getLength() {
         return area.getLength();
+    }
+    
+    public final String getText(int start, int end) {
+        return area.getText(start, end);
+    }
+
+    public final EditorLanguage getLanguageDefinition() {
+        LanguageRegistry registry = LanguageRegistry.getDefault();
+        return registry.find(getLanguage()).orElseGet(() -> registry.require(LanguageRegistry.PLAIN_TEXT));
+    }
+
+    public final int getCaretPosition() {
+        return area.getCaretPosition();
+    }
+
+    public final IndexRange getSelection() {
+        return area.getSelection();
+    }
+
+    public final void moveCaret(int position) {
+        area.moveTo(position);
+    }
+
+    public final void selectRange(int anchor, int caret) {
+        area.selectRange(anchor, caret);
+    }
+
+    public final void replaceText(int start, int end, String text) {
+        area.replaceText(start, end, text == null ? "" : text);
+    }
+
+    public final int getLineCount() {
+        return area.getParagraphs().size();
+    }
+
+    public final String getLineText(int line) {
+        return area.getText(line);
+    }
+
+    public final int getLineStart(int line) {
+        return area.getAbsolutePosition(line, 0);
+    }
+
+    public final int getLineOfOffset(int offset) {
+        return area.offsetToPosition(offset, Bias.Forward).getMajor();
     }
 
     public final boolean isEditable() {
@@ -179,6 +240,41 @@ public class CodeEditor extends Control {
         return language;
     }
 
+    public final int getTabSize() {
+        return tabSize.get();
+    }
+
+    public final void setTabSize(int size) {
+        if (size < 1 || size > 16) {
+            throw new IllegalArgumentException("Tab size must be between 1 and 16: " + size);
+        }
+        tabSize.set(size);
+    }
+
+    public final IntegerProperty tabSizeProperty() {
+        return tabSize;
+    }
+
+    public final boolean isInsertSpaces() {
+        return insertSpaces.get();
+    }
+
+    public final void setInsertSpaces(boolean spaces) {
+        insertSpaces.set(spaces);
+    }
+
+    public final BooleanProperty insertSpacesProperty() {
+        return insertSpaces;
+    }
+
+    public final String getIndentUnit() {
+        return isInsertSpaces() ? " ".repeat(getTabSize()) : "\t";
+    }
+
+    public final EditorFeatures features() {
+        return features;
+    }
+
     @Override
     public void requestFocus() {
         area.requestFocus();
@@ -237,7 +333,7 @@ public class CodeEditor extends Control {
         getStylesheets().add(stylesheet);
         appliedStylesheet = stylesheet;
     }
-    
+
     private void applyLanguage() {
         Optional<EditorLanguage> found = LanguageRegistry.getDefault().find(getLanguage());
         if (found.isEmpty()) {

@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "id": "java",
+  "name": "Java",
+  "extensions": ["java"],
+  "states": {
+    "root": [
+      { "match": "//.*", "scope": "comment.line" },
+      { "begin": "/\\*\\*(?!/)", "end": "\\*/", "scope": "comment.doc" },
+      { "begin": "/\\*", "end": "\\*/", "scope": "comment.block" },
+      { "begin": "\"\"\"", "end": "(?<!\\\\)\"\"\"", "scope": "string" },
+      { "match": "\"[^\"\\\\]*+(?:\\\\.[^\"\\\\]*+)*+\"?", "scope": "string" },
+      { "match": "'[^'\\\\]*+(?:\\\\.[^'\\\\]*+)*+'?", "scope": "string.char" },
+      { "match": "@interface(?![\\w$])", "scope": "keyword" },
+      { "match": "@[A-Za-z_$][\\w$]*(?:\\.[A-Za-z_$][\\w$]*)*", "scope": "type.annotation" },
+      { "match": "(?:import|package)(?![\\w$])", "scope": "keyword.control", "push": "directive" },
+      { "match": "0[xX][\\da-fA-F_]+[lL]?|0[bB][01_]+[lL]?|\\d[\\d_]*(?:\\.\\d[\\d_]*)?(?:[eE][+-]?\\d+)?[lLfFdD]?|\\.\\d[\\d_]*(?:[eE][+-]?\\d+)?[fFdD]?", "scope": "number" },
+      { "words": ["true", "false", "null"], "scope": "constant.language" },
+      { "words": ["if", "else", "for", "while", "do", "switch", "case", "default", "break", "continue", "return", "throw", "try", "catch", "finally", "assert"], "scope": "keyword.control" },
+      { "words": ["boolean", "byte", "char", "short", "int", "long", "float", "double", "void", "var"], "scope": "keyword.type" },
+      { "words": ["abstract", "class", "enum", "extends", "final", "implements", "instanceof", "interface", "native", "new", "private", "protected", "public", "static", "strictfp", "super", "synchronized", "this", "throws", "transient", "volatile"], "scope": "keyword" },
+      { "match": "record(?=\\s+[A-Za-z_$][\\w$]*\\s*[(<])", "scope": "keyword" },
+      { "match": "sealed(?=\\s+(?:(?:public|private|protected|static|abstract|final|strictfp)\\s+)*(?:class|interface)(?![\\w$]))", "scope": "keyword" },
+      { "match": "permits(?=\\s+[A-Z])", "scope": "keyword" },
+      { "match": "[A-Z][A-Z0-9_$]+(?![\\w$])", "scope": "constant" },
+      { "match": "[A-Z][\\w$]*", "scope": "type" },
+      { "match": "[A-Za-z_$][\\w$]*(?=\\s*\\()", "scope": "function" },
+      { "match": "(?<=\\.)[a-z_$][\\w$]*", "scope": "variable.property" }
+    ],
+    "directive": [
+      { "match": "//.*", "scope": "comment.line" },
+      { "words": ["static"], "scope": "keyword" },
+      { "match": "[A-Z][\\w$]*", "scope": "type" },
+      { "match": ";", "scope": "punctuation", "pop": true },
+      { "eol": true, "pop": true }
+    ]
+  }
+}

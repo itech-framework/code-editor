@@ -12,12 +12,16 @@ public final class EditorLanguage {
     private final String displayName;
     private final List<String> extensions;
     private final Tokenizer tokenizer;
+    private final List<BracketPair> autoClosingPairs;
 
     private EditorLanguage(Builder builder) {
         this.id = builder.id;
         this.displayName = builder.displayName == null ? builder.id : builder.displayName;
         this.extensions = List.copyOf(builder.extensions);
         this.tokenizer = builder.tokenizer;
+        this.autoClosingPairs = builder.autoClosingPairs == null
+                ? BracketPair.DEFAULT_AUTO_CLOSING
+                : List.copyOf(builder.autoClosingPairs);
     }
 
     public static Builder builder(String id) {
@@ -38,6 +42,10 @@ public final class EditorLanguage {
 
     public Tokenizer getTokenizer() {
         return tokenizer;
+    }
+
+    public List<BracketPair> getAutoClosingPairs() {
+        return autoClosingPairs;
     }
 
     static String normalizeId(String id) {
@@ -67,6 +75,7 @@ public final class EditorLanguage {
         private String displayName;
         private final List<String> extensions = new ArrayList<>();
         private Tokenizer tokenizer;
+        private List<BracketPair> autoClosingPairs;
 
         private Builder(String id) {
             this.id = normalizeId(id);
@@ -93,6 +102,12 @@ public final class EditorLanguage {
 
         public Builder tokenizer(Tokenizer tokenizer) {
             this.tokenizer = Objects.requireNonNull(tokenizer, "tokenizer");
+            return this;
+        }
+
+        public Builder autoClosingPairs(Collection<BracketPair> pairs) {
+            Objects.requireNonNull(pairs, "pairs");
+            this.autoClosingPairs = new ArrayList<>(pairs);
             return this;
         }
 
