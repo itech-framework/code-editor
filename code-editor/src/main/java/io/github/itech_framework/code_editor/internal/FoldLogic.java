@@ -80,6 +80,23 @@ public final class FoldLogic {
         }
         return null;
     }
+    
+    public static Range startingAt(List<Range> ranges, int line) {
+        int low = 0;
+        int high = ranges.size() - 1;
+        while (low <= high) {
+            int mid = (low + high) >>> 1;
+            int start = ranges.get(mid).startLine();
+            if (start < line) {
+                low = mid + 1;
+            } else if (start > line) {
+                high = mid - 1;
+            } else {
+                return ranges.get(mid);
+            }
+        }
+        return null;
+    }
 
     public static Scan scan(List<Range> ranges, IntPredicate hidden, int lineCount) {
         Map<Integer, Range> byStart = new HashMap<>();

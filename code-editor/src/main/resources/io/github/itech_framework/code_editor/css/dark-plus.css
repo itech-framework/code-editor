@@ -41,4 +41,6 @@
     -ce-find-match: rgba(234, 92, 0, 0.33);
     -ce-find-match-current: #515c6a;
     -ce-find-match-current-border: #a0a0a0;
+    
+    -ce-fold-header: rgba(38, 79, 120, 0.3);
 }

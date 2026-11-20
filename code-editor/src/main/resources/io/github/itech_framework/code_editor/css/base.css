@@ -24,8 +24,8 @@
 	-ce-token-tag: #800000;
 	-ce-token-attribute: #e50000;
 	-ce-token-invalid: #cd3131;
-	-ce-bracket-match: rgba(0, 100, 0, 0.12); -ce-bracket-match-border :
-	#b9b9b9;
+	-ce-bracket-match: rgba(0, 100, 0, 0.12); 
+	-ce-bracket-match-border : #b9b9b9;
 	-fx-background-color: -ce-background;
 	-ce-bracket-match-border: #b9b9b9;
 
@@ -42,6 +42,7 @@
 	-ce-find-match: rgba(234, 92, 0, 0.33);
 	-ce-find-match-current: rgba(168, 172, 148, 0.8);
 	-ce-find-match-current-border: #8a9070;
+	-ce-fold-header: rgba(173, 214, 255, 0.3);
 }
 
 .code-editor .code-area {
@@ -71,6 +72,10 @@
 
 .code-editor .paragraph-box:has-caret .code-editor-line-number {
 	-fx-text-fill: -ce-line-number-active;
+}
+
+.code-editor .paragraph-box.fold-header {
+	-fx-background-color: -ce-fold-header;
 }
 
 .code-editor.no-current-line .paragraph-box:has-caret {
@@ -349,4 +354,13 @@
 
 .code-editor .find-panel .find-text-button:armed {
     -fx-background-color: -ce-find-active;
+}
+
+.code-editor .code-editor-fold {
+	-fx-padding: 0 8 0 0;
+	-fx-text-fill: -ce-line-number;
+}
+
+.code-editor .code-editor-fold:hover {
+	-fx-text-fill: -ce-line-number-active;
 }

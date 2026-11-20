@@ -20,6 +20,8 @@ public final class FoldFeature implements EditorFeature {
 
     public static final String ID = "fold";
 
+    public static final String HEADER_CLASS = "fold-header";
+
     private static final Set<String> SKIPPED = Set.of("tok-string", "tok-comment");
 
     private static final ExecutorService WORKER = Executors.newSingleThreadExecutor(task -> {
@@ -41,6 +43,8 @@ public final class FoldFeature implements EditorFeature {
     private int generation;
 
     private boolean hasFolds;
+
+    private boolean marked;
 
     @Override
     public String getId() {
@@ -86,6 +90,7 @@ public final class FoldFeature implements EditorFeature {
         }
         target.hideLines(range.firstHiddenLine(), range.lastHiddenLine());
         hasFolds = true;
+        syncMarks(target);
         target.foldState().touch();
         return true;
     }
@@ -101,6 +106,27 @@ public final class FoldFeature implements EditorFeature {
             return false;
         }
         target.showLinesAfter(range.startLine());
+        syncMarks(target);
+        target.foldState().touch();
+        return true;
+    }
+
+    public boolean toggleAt(int line) {
+        CodeEditor target = editor;
+        if (target == null) {
+            return false;
+        }
+        FoldLogic.Range range = FoldLogic.startingAt(target.foldState().getRanges(), line);
+        if (range == null || !valid(target, range)) {
+            return false;
+        }
+        if (target.isLineHidden(range.firstHiddenLine())) {
+            target.showLinesAfter(range.startLine());
+        } else {
+            target.hideLines(range.firstHiddenLine(), range.lastHiddenLine());
+            hasFolds = true;
+        }
+        syncMarks(target);
         target.foldState().touch();
         return true;
     }
@@ -153,7 +179,15 @@ public final class FoldFeature implements EditorFeature {
             }
             hasFolds = scan.runs() > scan.stale().size();
         }
+        syncMarks(target);
         target.foldState().setRanges(ranges);
+    }
+
+    private void syncMarks(CodeEditor target) {
+        if (!hasFolds && !marked) {
+            return;
+        }
+        marked = target.markFoldHeaders(HEADER_CLASS);
     }
 
     private static boolean valid(CodeEditor target, FoldLogic.Range range) {

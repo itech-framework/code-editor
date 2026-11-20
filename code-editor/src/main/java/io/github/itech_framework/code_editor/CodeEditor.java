@@ -465,6 +465,36 @@ public class CodeEditor extends Control {
         area.unfoldParagraphs(header);
         area.selectRange(anchor, caret);
     }
+    
+    public final boolean toggleFold(int line) {
+        if (!features.isEnabled(FoldFeature.ID)) {
+            return false;
+        }
+        return features.find(FoldFeature.ID)
+                .filter(FoldFeature.class::isInstance)
+                .map(feature -> ((FoldFeature) feature).toggleAt(line))
+                .orElse(false);
+    }
+    
+    public final boolean markFoldHeaders(String styleClass) {
+        int count = area.getParagraphs().size();
+        boolean any = false;
+        for (int line = 0; line < count; line++) {
+            boolean header = line + 1 < count && area.isFolded(line + 1) && !area.isFolded(line);
+            Collection<String> style = area.getParagraph(line).getParagraphStyle();
+            if (header != style.contains(styleClass)) {
+                List<String> updated = new ArrayList<>(style);
+                if (header) {
+                    updated.add(styleClass);
+                } else {
+                    updated.remove(styleClass);
+                }
+                area.setParagraphStyle(line, updated);
+            }
+            any |= header;
+        }
+        return any;
+    }
 
     public final BitSet offsetsWithStyle(Collection<String> classes) {
         BitSet result = new BitSet();
@@ -520,7 +550,9 @@ public class CodeEditor extends Control {
     }
 
     private void updateGutter() {
-        area.setParagraphGraphicFactory(isShowLineNumbers() ? new LineNumberGutter(area) : null);
+        area.setParagraphGraphicFactory(isShowLineNumbers()
+                ? new LineNumberGutter(area, foldState, this::isLineHidden, line -> toggleFold(line))
+                : null);
     }
 
     private void updateCurrentLine() {
