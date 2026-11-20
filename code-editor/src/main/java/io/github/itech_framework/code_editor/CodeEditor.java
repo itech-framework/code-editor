@@ -2,12 +2,14 @@ package io.github.itech_framework.code_editor;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.model.StyleSpan;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.TwoDimensional.Bias;
 import org.fxmisc.richtext.util.UndoUtils;
@@ -17,10 +19,12 @@ import io.github.itech_framework.code_editor.feature.AutoCloseFeature;
 import io.github.itech_framework.code_editor.feature.AutoIndentFeature;
 import io.github.itech_framework.code_editor.feature.BracketMatchFeature;
 import io.github.itech_framework.code_editor.feature.FindFeature;
+import io.github.itech_framework.code_editor.feature.FoldFeature;
 import io.github.itech_framework.code_editor.feature.GoToLineFeature;
 import io.github.itech_framework.code_editor.feature.LineEditFeature;
 import io.github.itech_framework.code_editor.feature.TabFeature;
 import io.github.itech_framework.code_editor.internal.FindPanel;
+import io.github.itech_framework.code_editor.internal.FoldState;
 import io.github.itech_framework.code_editor.internal.FontSupport;
 import io.github.itech_framework.code_editor.internal.GoToLineLogic;
 import io.github.itech_framework.code_editor.internal.GoToLinePanel;
@@ -84,6 +88,8 @@ public class CodeEditor extends Control {
     private final FindPanel findPanel = new FindPanel();
     
     private final GoToLinePanel goToLinePanel = new GoToLinePanel();
+    
+    private final FoldState foldState = new FoldState();
 
     private String appliedStylesheet;
 
@@ -118,6 +124,7 @@ public class CodeEditor extends Control {
         features.register(new FindFeature());
         features.register(new GoToLineFeature());
         features.register(new LineEditFeature());
+        features.register(new FoldFeature());
     }
 
     public final String getText() {
@@ -423,6 +430,66 @@ public class CodeEditor extends Control {
         area.moveTo(offset);
         area.showParagraphAtCenter(index);
         area.requestFocus();
+    }
+    
+    public final FoldState foldState() {
+        return foldState;
+    }
+
+    public final boolean isLineHidden(int line) {
+        return line >= 0 && line < area.getParagraphs().size() && area.isFolded(line);
+    }
+
+    public final void hideLines(int first, int last) {
+        if (first < 1 || last < first || last >= area.getParagraphs().size()) {
+            return;
+        }
+        int anchor = area.getAnchor();
+        int caret = area.getCaretPosition();
+        int hiddenStart = area.getAbsolutePosition(first, 0);
+        int hiddenEnd = area.getAbsolutePosition(last, area.getParagraphLength(last));
+        area.foldParagraphs(first - 1, last);
+        if (isBetween(anchor, hiddenStart, hiddenEnd) || isBetween(caret, hiddenStart, hiddenEnd)) {
+            area.moveTo(hiddenStart - 1);
+        } else {
+            area.selectRange(anchor, caret);
+        }
+    }
+
+    public final void showLinesAfter(int header) {
+        if (header < 0 || !isLineHidden(header + 1)) {
+            return;
+        }
+        int anchor = area.getAnchor();
+        int caret = area.getCaretPosition();
+        area.unfoldParagraphs(header);
+        area.selectRange(anchor, caret);
+    }
+
+    public final BitSet offsetsWithStyle(Collection<String> classes) {
+        BitSet result = new BitSet();
+        int length = area.getLength();
+        if (length == 0) {
+            return result;
+        }
+        int offset = 0;
+        for (StyleSpan<Collection<String>> span : area.getStyleSpans(0, length)) {
+            int end = offset + span.getLength();
+            if (span.getStyle() != null) {
+                for (String styleClass : span.getStyle()) {
+                    if (classes.contains(styleClass)) {
+                        result.set(offset, end);
+                        break;
+                    }
+                }
+            }
+            offset = end;
+        }
+        return result;
+    }
+    
+    private static boolean isBetween(int offset, int start, int end) {
+        return offset >= start && offset <= end;
     }
 
     private void closeGoToLinePanel() {
