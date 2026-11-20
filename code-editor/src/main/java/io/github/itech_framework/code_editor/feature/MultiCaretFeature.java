@@ -1,12 +1,15 @@
 package io.github.itech_framework.code_editor.feature;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import io.github.itech_framework.code_editor.CodeEditor;
 import io.github.itech_framework.code_editor.EditorFeature;
+import io.github.itech_framework.code_editor.internal.MultiEditLogic;
 import javafx.event.EventHandler;
+import javafx.scene.control.IndexRange;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
@@ -25,6 +28,8 @@ public final class MultiCaretFeature implements EditorFeature {
 
     private final EventHandler<KeyEvent> keyHandler = this::onKeyPressed;
 
+    private final EventHandler<KeyEvent> typedHandler = this::onKeyTyped;
+
     private CodeEditor editor;
 
     private boolean blocking;
@@ -41,6 +46,7 @@ public final class MultiCaretFeature implements EditorFeature {
         target.addEventFilter(MouseEvent.MOUSE_DRAGGED, followUpHandler);
         target.addEventFilter(MouseEvent.MOUSE_RELEASED, followUpHandler);
         target.addEventFilter(KeyEvent.KEY_PRESSED, keyHandler);
+        target.addEventFilter(KeyEvent.KEY_TYPED, typedHandler);
     }
 
     @Override
@@ -49,6 +55,7 @@ public final class MultiCaretFeature implements EditorFeature {
         target.removeEventFilter(MouseEvent.MOUSE_DRAGGED, followUpHandler);
         target.removeEventFilter(MouseEvent.MOUSE_RELEASED, followUpHandler);
         target.removeEventFilter(KeyEvent.KEY_PRESSED, keyHandler);
+        target.removeEventFilter(KeyEvent.KEY_TYPED, typedHandler);
         target.clearExtraCarets();
         blocking = false;
         editor = null;
@@ -102,7 +109,69 @@ public final class MultiCaretFeature implements EditorFeature {
             }
             return;
         }
+        if (target.hasExtraCarets() && target.isEditable() && isTypingChord(event)) {
+            if (code == KeyCode.BACK_SPACE) {
+                apply(target, MultiEditLogic.backspace(target.getText(), spans(target), 0));
+                event.consume();
+                return;
+            }
+            if (code == KeyCode.DELETE && !event.isShiftDown()) {
+                apply(target, MultiEditLogic.delete(target.getText(), spans(target), 0));
+                event.consume();
+                return;
+            }
+            if (isTypingKey(code)) {
+                return;
+            }
+        }
         target.clearExtraCarets();
+    }
+
+    private void onKeyTyped(KeyEvent event) {
+        CodeEditor target = editor;
+        if (target == null || !target.hasExtraCarets() || !target.isEditable() || !target.isTextAreaEvent(event)
+                || !isTypingChord(event)) {
+            return;
+        }
+        String text = event.getCharacter();
+        if (text.isEmpty() || Character.isISOControl(text.charAt(0))) {
+            return;
+        }
+        apply(target, MultiEditLogic.insert(target.getText(), spans(target), 0, text));
+        event.consume();
+    }
+
+    private static boolean isTypingChord(KeyEvent event) {
+        if (event.isMetaDown()) {
+            return false;
+        }
+        if (event.isControlDown()) {
+            return event.isAltDown();
+        }
+        return !event.isAltDown();
+    }
+
+    private static boolean isTypingKey(KeyCode code) {
+        return code != KeyCode.ENTER && code != KeyCode.TAB && !code.isNavigationKey() && !code.isArrowKey()
+                && !code.isFunctionKey() && !code.isMediaKey();
+    }
+
+    private static List<MultiEditLogic.Span> spans(CodeEditor target) {
+        IndexRange selection = target.getSelection();
+        List<MultiEditLogic.Span> spans = new ArrayList<>();
+        spans.add(new MultiEditLogic.Span(selection.getStart(), selection.getEnd()));
+        List<Integer> positions = target.getCaretPositions();
+        for (int i = 1; i < positions.size(); i++) {
+            spans.add(new MultiEditLogic.Span(positions.get(i), positions.get(i)));
+        }
+        return spans;
+    }
+
+    private static void apply(CodeEditor target, MultiEditLogic.Plan plan) {
+        target.applyEdits(plan.edits());
+        List<Integer> carets = new ArrayList<>(plan.carets());
+        int primary = carets.remove(plan.primary());
+        target.setCaretPositions(primary, carets);
     }
 
     private void addVertically(CodeEditor target, int direction) {

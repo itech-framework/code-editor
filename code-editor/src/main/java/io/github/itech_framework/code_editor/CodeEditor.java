@@ -174,6 +174,40 @@ public class CodeEditor extends Control {
     public final int getCaretPosition() {
         return area.getCaretPosition();
     }
+    
+    public final void applyEdits(List<TextEdit> edits) {
+        if (edits.isEmpty()) {
+            return;
+        }
+        int length = area.getLength();
+        int previousEnd = 0;
+        for (TextEdit edit : edits) {
+            if (edit.start() < previousEnd || edit.end() > length) {
+                throw new IllegalArgumentException("Edits must be ascending, non-overlapping and inside the document");
+            }
+            previousEnd = edit.end();
+        }
+        if (edits.size() == 1) {
+            TextEdit edit = edits.get(0);
+            area.replaceText(edit.start(), edit.end(), edit.text());
+            return;
+        }
+        var builder = area.createMultiChange(edits.size());
+        int shift = 0;
+        for (TextEdit edit : edits) {
+            builder.replaceTextAbsolutely(edit.start() + shift, edit.end() + shift, edit.text());
+            shift += edit.text().length() - (edit.end() - edit.start());
+        }
+        builder.commit();
+    }
+
+    public final void setCaretPositions(int primary, List<Integer> extras) {
+        area.moveTo(Math.max(0, Math.min(primary, area.getLength())));
+        extraCarets.clear();
+        for (int position : extras) {
+            extraCarets.add(position);
+        }
+    }
 
     public final IndexRange getSelection() {
         return area.getSelection();
