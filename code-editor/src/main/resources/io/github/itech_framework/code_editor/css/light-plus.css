@@ -27,4 +27,18 @@
     -ce-token-tag: #800000;
     -ce-token-attribute: #e50000;
     -ce-token-invalid: #cd3131;
+
+    -ce-find-panel-background: #f3f3f3;
+    -ce-find-panel-border: #c8c8c8;
+    -ce-find-foreground: #333333;
+    -ce-find-hint: #8a8a8a;
+    -ce-find-field-background: #ffffff;
+    -ce-find-field-border: #c8c8c8;
+    -ce-find-field-border-focused: #0090f1;
+    -ce-find-hover: rgba(90, 93, 94, 0.31);
+    -ce-find-active: rgba(0, 144, 241, 0.35);
+    -ce-find-error: #e51400;
+    -ce-find-match: rgba(234, 92, 0, 0.33);
+    -ce-find-match-current: rgba(168, 172, 148, 0.8);
+    -ce-find-match-current-border: #8a9070;
 }

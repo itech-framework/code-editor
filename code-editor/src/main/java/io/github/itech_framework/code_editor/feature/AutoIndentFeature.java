@@ -35,7 +35,7 @@ public final class AutoIndentFeature implements EditorFeature {
 
     private void onKeyPressed(KeyEvent event) {
         CodeEditor target = editor;
-        if (target == null || event.getCode() != KeyCode.ENTER || !target.isEditable()) {
+        if (target == null || event.getCode() != KeyCode.ENTER || !target.isEditable() || !target.isTextAreaEvent(event)) {
             return;
         }
         if (event.isShiftDown() || event.isControlDown() || event.isAltDown() || event.isMetaDown()) {

@@ -28,6 +28,20 @@
 	#b9b9b9;
 	-fx-background-color: -ce-background;
 	-ce-bracket-match-border: #b9b9b9;
+
+	-ce-find-panel-background: #f3f3f3;
+	-ce-find-panel-border: #c8c8c8;
+	-ce-find-foreground: #333333;
+	-ce-find-hint: #8a8a8a;
+	-ce-find-field-background: #ffffff;
+	-ce-find-field-border: #c8c8c8;
+	-ce-find-field-border-focused: #0090f1;
+	-ce-find-hover: rgba(90, 93, 94, 0.31);
+	-ce-find-active: rgba(0, 144, 241, 0.35);
+	-ce-find-error: #e51400;
+	-ce-find-match: rgba(234, 92, 0, 0.33);
+	-ce-find-match-current: rgba(168, 172, 148, 0.8);
+	-ce-find-match-current-border: #8a9070;
 }
 
 .code-editor .code-area {
@@ -168,4 +182,117 @@
     -rtfx-background-color: -ce-bracket-match;
     -rtfx-border-stroke-color: -ce-bracket-match-border;
     -rtfx-border-stroke-width: 1px;
+}
+
+
+.code-editor .code-area .text.find-match {
+    -rtfx-background-color: -ce-find-match;
+}
+
+.code-editor .code-area .text.find-match-current {
+    -rtfx-background-color: -ce-find-match-current;
+    -rtfx-border-stroke-color: -ce-find-match-current-border;
+    -rtfx-border-stroke-width: 1px;
+}
+
+.code-editor .find-panel {
+    -fx-background-color: -ce-find-panel-background;
+    -fx-border-color: -ce-find-panel-border;
+    -fx-border-width: 1;
+    -fx-padding: 4 6 4 6;
+    -fx-spacing: 4;
+    -fx-alignment: center-left;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 8, 0, 0, 2);
+}
+
+.code-editor .find-panel .find-field {
+    -fx-background-color: -ce-find-field-background;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-color: -ce-find-field-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 0;
+    -fx-text-fill: -ce-find-foreground;
+    -fx-prompt-text-fill: -ce-find-hint;
+    -fx-font-size: 12px;
+}
+
+.code-editor .find-panel .find-field:focused {
+    -fx-border-color: -ce-find-field-border-focused;
+}
+
+.code-editor .find-panel .find-toggle {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3;
+    -fx-text-fill: -ce-find-foreground;
+    -fx-font-size: 12px;
+    -fx-padding: 3 6 3 6;
+    -fx-cursor: hand;
+}
+
+.code-editor .find-panel .find-toggle:hover {
+    -fx-background-color: -ce-find-hover;
+}
+
+.code-editor .find-panel .find-toggle:selected {
+    -fx-background-color: -ce-find-active;
+}
+
+.code-editor .find-panel .find-button {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3;
+    -fx-padding: 5 6 5 6;
+    -fx-cursor: hand;
+}
+
+.code-editor .find-panel .find-button:hover {
+    -fx-background-color: -ce-find-hover;
+}
+
+.code-editor .find-panel .find-button:armed {
+    -fx-background-color: -ce-find-active;
+}
+
+.code-editor .find-panel .find-icon {
+    -fx-background-color: -ce-find-foreground;
+    -fx-min-width: 10px;
+    -fx-pref-width: 10px;
+    -fx-max-width: 10px;
+    -fx-min-height: 10px;
+    -fx-pref-height: 10px;
+    -fx-max-height: 10px;
+}
+
+.code-editor .find-panel .find-icon-up {
+    -fx-shape: "M 0 6 L 5 1 L 10 6 L 9 7 L 5 3 L 1 7 Z";
+    -fx-min-height: 6px;
+    -fx-pref-height: 6px;
+    -fx-max-height: 6px;
+}
+
+.code-editor .find-panel .find-icon-down {
+    -fx-shape: "M 0 1 L 1 0 L 5 4 L 9 0 L 10 1 L 5 6 Z";
+    -fx-min-height: 6px;
+    -fx-pref-height: 6px;
+    -fx-max-height: 6px;
+}
+
+.code-editor .find-panel .find-icon-close {
+    -fx-shape: "M 1 0 L 5 4 L 9 0 L 10 1 L 6 5 L 10 9 L 9 10 L 5 6 L 1 10 L 0 9 L 4 5 L 0 1 Z";
+}
+
+.code-editor .find-panel .find-status {
+    -fx-text-fill: -ce-find-foreground;
+    -fx-font-size: 12px;
+    -fx-alignment: center;
+    -fx-min-width: 96px;
+    -fx-pref-width: 96px;
+    -fx-max-width: 96px;
+    -fx-text-overrun: ellipsis;
+}
+
+.code-editor .find-panel .find-status.find-error {
+    -fx-text-fill: -ce-find-error;
 }

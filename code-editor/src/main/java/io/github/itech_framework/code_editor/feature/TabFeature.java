@@ -39,7 +39,7 @@ public final class TabFeature implements EditorFeature {
 
     private void onKeyTyped(KeyEvent event) {
         CodeEditor target = editor;
-        if (target == null || !target.isEditable() || !"\t".equals(event.getCharacter())) {
+        if (target == null || !target.isEditable() || !target.isTextAreaEvent(event) || !"\t".equals(event.getCharacter())) {
             return;
         }
         if (event.isControlDown() || event.isAltDown() || event.isMetaDown()) {
@@ -50,7 +50,7 @@ public final class TabFeature implements EditorFeature {
 
     private void onKeyPressed(KeyEvent event) {
         CodeEditor target = editor;
-        if (target == null || event.getCode() != KeyCode.TAB || !target.isEditable()) {
+        if (target == null || event.getCode() != KeyCode.TAB || !target.isEditable() || !target.isTextAreaEvent(event)) {
             return;
         }
         if (event.isControlDown() || event.isAltDown() || event.isMetaDown()) {

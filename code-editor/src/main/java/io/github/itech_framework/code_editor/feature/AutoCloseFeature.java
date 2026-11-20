@@ -42,7 +42,7 @@ public final class AutoCloseFeature implements EditorFeature {
 
     private void onKeyTyped(KeyEvent event) {
         CodeEditor target = editor;
-        if (target == null || !target.isEditable()) {
+        if (target == null || !target.isEditable() || !target.isTextAreaEvent(event)) {
             return;
         }
         if (event.isMetaDown() || (event.isControlDown() && !event.isAltDown())) {
@@ -85,7 +85,7 @@ public final class AutoCloseFeature implements EditorFeature {
 
     private void onKeyPressed(KeyEvent event) {
         CodeEditor target = editor;
-        if (target == null || event.getCode() != KeyCode.BACK_SPACE || !target.isEditable()) {
+        if (target == null || event.getCode() != KeyCode.BACK_SPACE || !target.isEditable() || !target.isTextAreaEvent(event)) {
             return;
         }
         if (event.isShiftDown() || event.isControlDown() || event.isAltDown() || event.isMetaDown()) {

@@ -1,11 +1,14 @@
 package io.github.itech_framework.code_editor;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.TwoDimensional.Bias;
 import org.fxmisc.richtext.util.UndoUtils;
 import org.reactfx.Subscription;
@@ -13,7 +16,9 @@ import org.reactfx.Subscription;
 import io.github.itech_framework.code_editor.feature.AutoCloseFeature;
 import io.github.itech_framework.code_editor.feature.AutoIndentFeature;
 import io.github.itech_framework.code_editor.feature.BracketMatchFeature;
+import io.github.itech_framework.code_editor.feature.FindFeature;
 import io.github.itech_framework.code_editor.feature.TabFeature;
+import io.github.itech_framework.code_editor.internal.FindPanel;
 import io.github.itech_framework.code_editor.internal.FontSupport;
 import io.github.itech_framework.code_editor.internal.LineNumberGutter;
 import io.github.itech_framework.code_editor.internal.SyntaxHighlighter;
@@ -30,6 +35,8 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.event.Event;
+import javafx.scene.Node;
 import javafx.scene.control.Control;
 import javafx.scene.control.IndexRange;
 import javafx.scene.control.Skin;
@@ -69,6 +76,8 @@ public class CodeEditor extends Control {
     private final BooleanProperty insertSpaces = new SimpleBooleanProperty(this, "insertSpaces", true);
 
     private final EditorFeatures features = new EditorFeatures(this);
+    
+    private final FindPanel findPanel = new FindPanel();
 
     private String appliedStylesheet;
 
@@ -91,10 +100,14 @@ public class CodeEditor extends Control {
         updateCurrentLine();
         applyFont();
         applyTheme();
+        
+        findPanel.setOnClose(this::closeFindPanel);
+        
         features.register(new AutoIndentFeature());
         features.register(new AutoCloseFeature());
         features.register(new TabFeature());
         features.register(new BracketMatchFeature());
+        features.register(new FindFeature());
     }
 
     public final String getText() {
@@ -166,6 +179,47 @@ public class CodeEditor extends Control {
         Subscription subscription = area.plainTextChanges().subscribe(change -> listener.onChange(
                 change.getPosition(), change.getRemoved().length(), change.getInserted().length()));
         return subscription::unsubscribe;
+    }
+    
+    public final void addStyleClass(int start, int end, String styleClass) {
+        changeStyleClass(start, end, styleClass, true);
+    }
+
+    public final void removeStyleClass(int start, int end, String styleClass) {
+        changeStyleClass(start, end, styleClass, false);
+    }
+
+    public final Runnable addHighlightListener(Runnable listener) {
+        Objects.requireNonNull(listener, "listener");
+        return highlighter.addAppliedListener(listener);
+    }
+
+    public final boolean isTextAreaEvent(Event event) {
+        if (!(event.getTarget() instanceof Node node)) {
+            return false;
+        }
+        for (Node current = node; current != null; current = current.getParent()) {
+            if (current == area) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public final boolean isFindPanelVisible() {
+        return findPanel.isVisible();
+    }
+
+    public final void setFindPanelVisible(boolean visible) {
+        findPanel.setVisible(visible);
+    }
+
+    public final BooleanProperty findPanelVisibleProperty() {
+        return findPanel.visibleProperty();
+    }
+    
+    public final void revealSelection() {
+        area.requestFollowCaret();
     }
 
     public final int getLineCount() {
@@ -330,6 +384,37 @@ public class CodeEditor extends Control {
 
     CodeArea area() {
         return area;
+    }
+
+    public final FindPanel findPanel() {
+        return findPanel;
+    }
+
+    private void closeFindPanel() {
+        setFindPanelVisible(false);
+        area.requestFocus();
+    }
+
+    private void changeStyleClass(int start, int end, String styleClass, boolean add) {
+        Objects.requireNonNull(styleClass, "styleClass");
+        int from = Math.max(0, start);
+        int to = Math.min(area.getLength(), end);
+        if (to <= from) {
+            return;
+        }
+        StyleSpans<Collection<String>> spans = area.getStyleSpans(from, to).mapStyles(styles -> {
+            if (styles.contains(styleClass) == add) {
+                return styles;
+            }
+            List<String> updated = new ArrayList<>(styles);
+            if (add) {
+                updated.add(styleClass);
+            } else {
+                updated.remove(styleClass);
+            }
+            return updated;
+        });
+        area.setStyleSpans(from, spans);
     }
 
     private void updateGutter() {

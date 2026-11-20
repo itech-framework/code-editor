@@ -193,9 +193,12 @@ public class DemoApp extends Application {
             }
         });
 
+        CheckBox find = new CheckBox("Find panel");
+        find.selectedProperty().bindBidirectional(editor.findPanelVisibleProperty());
+
         ToolBar bar = new ToolBar(editable, lineNumbers, currentLine, autoIndent, autoClose, new Label("Tab size"),
                 tabSize, spaces, new Label("Font size"), size, new Label("Theme"), theme, new Label("Language"),
-                language, unknown, sample, load);
+                language, unknown, sample, load, find);
         
         BorderPane root = new BorderPane(editor);
         root.setTop(bar);

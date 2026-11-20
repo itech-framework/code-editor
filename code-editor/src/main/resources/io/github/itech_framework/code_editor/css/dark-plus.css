@@ -27,4 +27,18 @@
     -ce-token-invalid: #f44747;
     -ce-bracket-match: rgba(120, 180, 120, 0.35);
     -ce-bracket-match-border: #888888;
+
+    -ce-find-panel-background: #252526;
+    -ce-find-panel-border: #454545;
+    -ce-find-foreground: #cccccc;
+    -ce-find-hint: #8c8c8c;
+    -ce-find-field-background: #3c3c3c;
+    -ce-find-field-border: #3c3c3c;
+    -ce-find-field-border-focused: #007fd4;
+    -ce-find-hover: rgba(90, 93, 94, 0.31);
+    -ce-find-active: rgba(0, 127, 212, 0.4);
+    -ce-find-error: #f48771;
+    -ce-find-match: rgba(234, 92, 0, 0.33);
+    -ce-find-match-current: #515c6a;
+    -ce-find-match-current-border: #a0a0a0;
 }

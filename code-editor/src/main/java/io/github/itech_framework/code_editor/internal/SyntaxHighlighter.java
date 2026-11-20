@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -52,6 +53,8 @@ public final class SyntaxHighlighter {
     private final CodeArea area;
 
     private final AtomicInteger latest = new AtomicInteger();
+    
+    private final List<Runnable> appliedListeners = new CopyOnWriteArrayList<>();
 
     private Tokenizer tokenizer;
 
@@ -63,6 +66,11 @@ public final class SyntaxHighlighter {
         resetCache();
         area.plainTextChanges().subscribe(this::onChange);
         area.plainTextChanges().successionEnds(IDLE_DELAY).subscribe(change -> schedule());
+    }
+    
+    public Runnable addAppliedListener(Runnable listener) {
+        appliedListeners.add(listener);
+        return () -> appliedListeners.remove(listener);
     }
 
     public void setTokenizer(Tokenizer tokenizer) {
@@ -165,6 +173,9 @@ public final class SyntaxHighlighter {
         cache = outcome.lines();
         if (outcome.spans() != null) {
             area.setStyleSpans(outcome.from(), outcome.spans());
+            for (Runnable listener : appliedListeners) {
+                listener.run();
+            }
         }
     }
 
