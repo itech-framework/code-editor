@@ -24,6 +24,7 @@ import io.github.itech_framework.code_editor.feature.GoToLineFeature;
 import io.github.itech_framework.code_editor.feature.LineEditFeature;
 import io.github.itech_framework.code_editor.feature.TabFeature;
 import io.github.itech_framework.code_editor.internal.FindPanel;
+import io.github.itech_framework.code_editor.internal.FoldMarkers;
 import io.github.itech_framework.code_editor.internal.FoldState;
 import io.github.itech_framework.code_editor.internal.FontSupport;
 import io.github.itech_framework.code_editor.internal.GoToLineLogic;
@@ -43,6 +44,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ListChangeListener;
 import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.control.Control;
@@ -91,6 +93,8 @@ public class CodeEditor extends Control {
     
     private final FoldState foldState = new FoldState();
 
+    private final FoldMarkers foldMarkers = new FoldMarkers(area, FoldFeature.HEADER_CLASS, line -> toggleFold(line));
+
     private String appliedStylesheet;
 
     private final SyntaxHighlighter highlighter;
@@ -116,6 +120,13 @@ public class CodeEditor extends Control {
         findPanel.setOnClose(this::closeFindPanel);
         
         goToLinePanel.setOnClose(this::closeGoToLinePanel);
+
+        foldState.revisionProperty().addListener((obs, old, value) -> foldMarkers.request());
+        area.getVisibleParagraphs().addListener((ListChangeListener<Object>) change -> foldMarkers.request());
+        area.layoutBoundsProperty().addListener((obs, old, value) -> foldMarkers.request());
+        fontFamily.addListener((obs, old, value) -> foldMarkers.request());
+        fontSize.addListener((obs, old, value) -> foldMarkers.request());
+        addHighlightListener(foldMarkers::request);
         
         features.register(new AutoIndentFeature());
         features.register(new AutoCloseFeature());

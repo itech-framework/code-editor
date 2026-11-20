@@ -43,6 +43,9 @@
 	-ce-find-match-current: rgba(168, 172, 148, 0.8);
 	-ce-find-match-current-border: #8a9070;
 	-ce-fold-header: rgba(173, 214, 255, 0.3);
+	
+	-ce-fold-marker: rgba(128, 128, 128, 0.3);
+	-ce-fold-marker-text: #6b6b6b;
 }
 
 .code-editor .code-area {
@@ -74,7 +77,7 @@
 	-fx-text-fill: -ce-line-number-active;
 }
 
-.code-editor .paragraph-box.fold-header {
+.code-editor .paragraph-text.fold-header {
 	-fx-background-color: -ce-fold-header;
 }
 
@@ -363,4 +366,12 @@
 
 .code-editor .code-editor-fold:hover {
 	-fx-text-fill: -ce-line-number-active;
+}
+
+.code-editor .code-editor-fold-marker {
+	-fx-background-color: -ce-fold-marker;
+	-fx-background-radius: 3;
+	-fx-text-fill: -ce-fold-marker-text;
+	-fx-padding: 0 6 0 6;
+	-fx-alignment: center;
 }

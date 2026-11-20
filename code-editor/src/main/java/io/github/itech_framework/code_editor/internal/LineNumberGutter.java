@@ -80,6 +80,8 @@ public final class LineNumberGutter implements IntFunction<Node> {
 
         HBox box = new HBox(number, arrow);
         HBox.setHgrow(number, Priority.ALWAYS);
+        Val<Boolean> visible = Val.wrap(folds.revisionProperty()).map(revision -> !hidden.test(index));
+        box.visibleProperty().bind(visible.conditionOnShowing(box).orElseConst(Boolean.TRUE));
         return box;
     }
 
