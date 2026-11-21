@@ -64,7 +64,7 @@ public final class SyntaxHighlighter {
         this.area = Objects.requireNonNull(area, "area");
         this.tokenizer = Objects.requireNonNull(tokenizer, "tokenizer");
         resetCache();
-        area.plainTextChanges().subscribe(this::onChange);
+        area.multiPlainChanges().subscribe(this::onChanges);
         area.plainTextChanges().successionEnds(IDLE_DELAY).subscribe(change -> schedule());
     }
     
@@ -80,6 +80,15 @@ public final class SyntaxHighlighter {
         schedule();
     }
 
+    private void onChanges(List<PlainTextChange> changes) {
+        if (changes.size() == 1) {
+            onChange(changes.get(0));
+            return;
+        }
+        latest.incrementAndGet();
+        resetCache();
+    }
+    
     private void onChange(PlainTextChange change) {
         latest.incrementAndGet();
         int line = area.offsetToPosition(change.getPosition(), Bias.Forward).getMajor();

@@ -170,6 +170,31 @@ public class CodeEditor extends Control {
         LanguageRegistry registry = LanguageRegistry.getDefault();
         return registry.find(getLanguage()).orElseGet(() -> registry.require(LanguageRegistry.PLAIN_TEXT));
     }
+    
+    public final List<IndexRange> getSelectionRanges() {
+        List<IndexRange> ranges = new ArrayList<>();
+        ranges.add(area.getSelection());
+        ranges.addAll(extraCarets.ranges());
+        return ranges;
+    }
+
+    public final void setSelectionRanges(IndexRange primary, List<IndexRange> extras) {
+        int length = area.getLength();
+        extraCarets.clear();
+        area.selectRange(Math.min(primary.getStart(), length), Math.min(primary.getEnd(), length));
+        for (IndexRange range : extras) {
+            extraCarets.addRange(range.getStart(), range.getEnd());
+        }
+    }
+
+    public final boolean hasMultiLineSelection() {
+        for (IndexRange range : getSelectionRanges()) {
+            if (range.getLength() > 0 && getLineOfOffset(range.getStart()) != getLineOfOffset(range.getEnd())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public final int getCaretPosition() {
         return area.getCaretPosition();

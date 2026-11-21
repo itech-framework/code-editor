@@ -77,7 +77,7 @@ public final class TabLogic {
         return new Block(out.toString(), newStart, newEnd);
     }
 
-    private static int removable(String line, int tabSize) {
+    public static int removable(String line, int tabSize) {
         if (line.isEmpty()) {
             return 0;
         }
