@@ -119,7 +119,7 @@ public final class DiagnosticsFeature implements EditorFeature {
         }
         DiagnosticsProvider provider = editor.getDiagnosticsProvider();
         if (provider == null) {
-            provider = BuiltInDiagnostics.forLanguage(editor.getLanguage());
+            provider = BuiltInDiagnostics.forLanguage(editor.getLanguageDefinition());
         }
         if (provider == null) {
             clear();
@@ -189,7 +189,7 @@ public final class DiagnosticsFeature implements EditorFeature {
         }
     }
 
-    private static int[] range(Diagnostic diagnostic, int length) {
+    public static int[] range(Diagnostic diagnostic, int length) {
         int start = Math.min(diagnostic.start(), length);
         int end = Math.min(diagnostic.end(), length);
         if (end > start) {

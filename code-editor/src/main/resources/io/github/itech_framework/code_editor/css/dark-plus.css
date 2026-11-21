@@ -49,4 +49,8 @@
     -ce-diag-error: #f14c4c;
     -ce-diag-warning: #cca700;
     -ce-diag-info: #3794ff;
+    
+    -ce-diag-tooltip-background: #252526;
+    -ce-diag-tooltip-foreground: #cccccc;
+    -ce-diag-tooltip-border: #454545;
 }

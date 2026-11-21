@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpan;
@@ -21,13 +22,17 @@ import io.github.itech_framework.code_editor.diagnostics.DiagnosticsProvider;
 import io.github.itech_framework.code_editor.feature.AutoCloseFeature;
 import io.github.itech_framework.code_editor.feature.AutoIndentFeature;
 import io.github.itech_framework.code_editor.feature.BracketMatchFeature;
+import io.github.itech_framework.code_editor.feature.DiagnosticHoverFeature;
 import io.github.itech_framework.code_editor.feature.DiagnosticsFeature;
 import io.github.itech_framework.code_editor.feature.FindFeature;
 import io.github.itech_framework.code_editor.feature.FoldFeature;
+import io.github.itech_framework.code_editor.feature.FormatFeature;
 import io.github.itech_framework.code_editor.feature.GoToLineFeature;
 import io.github.itech_framework.code_editor.feature.LineEditFeature;
 import io.github.itech_framework.code_editor.feature.MultiCaretFeature;
 import io.github.itech_framework.code_editor.feature.TabFeature;
+import io.github.itech_framework.code_editor.formatting.CodeFormatter;
+import io.github.itech_framework.code_editor.internal.DiagnosticTooltip;
 import io.github.itech_framework.code_editor.internal.ExtraCarets;
 import io.github.itech_framework.code_editor.internal.FindPanel;
 import io.github.itech_framework.code_editor.internal.FoldMarkers;
@@ -101,6 +106,8 @@ public class CodeEditor extends Control {
     private final EditorFeatures features = new EditorFeatures(this);
     
     private final ObjectProperty<DiagnosticsProvider> diagnosticsProvider = new SimpleObjectProperty<>(this, "diagnosticsProvider");
+    
+    private final ObjectProperty<CodeFormatter> formatter = new SimpleObjectProperty<>(this, "formatter");
 
     private final ReadOnlyObjectWrapper<List<Diagnostic>> diagnostics = new ReadOnlyObjectWrapper<>(this, "diagnostics", List.of());
 
@@ -109,6 +116,8 @@ public class CodeEditor extends Control {
     private final FindPanel findPanel = new FindPanel();
     
     private final GoToLinePanel goToLinePanel = new GoToLinePanel();
+    
+    private final DiagnosticTooltip diagnosticTooltip = new DiagnosticTooltip();
     
     private final FoldState foldState = new FoldState();
 
@@ -159,6 +168,8 @@ public class CodeEditor extends Control {
         features.register(new FoldFeature());
         features.register(new MultiCaretFeature());
         features.register(new DiagnosticsFeature());
+        features.register(new DiagnosticHoverFeature());
+        features.register(new FormatFeature());
     }
 
     public final String getText() {
@@ -344,6 +355,15 @@ public class CodeEditor extends Control {
         Point2D point = area.screenToLocal(screenX, screenY);
         return area.hit(point.getX(), point.getY()).getInsertionIndex();
     }
+    
+    public final OptionalInt charIndexAt(double screenX, double screenY) {
+        Point2D point = area.screenToLocal(screenX, screenY);
+        return area.hit(point.getX(), point.getY()).getCharacterIndex();
+    }
+
+    public final DiagnosticTooltip diagnosticTooltip() {
+        return diagnosticTooltip;
+    }
 
     public final boolean isFindPanelVisible() {
         return findPanel.isVisible();
@@ -497,6 +517,18 @@ public class CodeEditor extends Control {
     
     public final DiagnosticsProvider getDiagnosticsProvider() {
         return diagnosticsProvider.get();
+    }
+    
+    public final CodeFormatter getFormatter() {
+        return formatter.get();
+    }
+
+    public final void setFormatter(CodeFormatter value) {
+        formatter.set(value);
+    }
+
+    public final ObjectProperty<CodeFormatter> formatterProperty() {
+        return formatter;
     }
 
     public final void setDiagnosticsProvider(DiagnosticsProvider provider) {
