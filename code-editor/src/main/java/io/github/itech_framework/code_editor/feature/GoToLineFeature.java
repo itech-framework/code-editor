@@ -2,6 +2,7 @@ package io.github.itech_framework.code_editor.feature;
 
 import io.github.itech_framework.code_editor.CodeEditor;
 import io.github.itech_framework.code_editor.EditorFeature;
+import io.github.itech_framework.code_editor.internal.EditorInternals;
 import io.github.itech_framework.code_editor.internal.GoToLineLogic;
 import io.github.itech_framework.code_editor.internal.GoToLinePanel;
 import javafx.beans.value.ChangeListener;
@@ -29,7 +30,7 @@ public final class GoToLineFeature implements EditorFeature {
     @Override
     public void install(CodeEditor target) {
         editor = target;
-        panel = target.goToLinePanel();
+        panel = EditorInternals.of(target).goToLinePanel();
         target.addEventFilter(KeyEvent.KEY_PRESSED, keyHandler);
         panel.textProperty().addListener(textListener);
         panel.setOnSubmit(this::submit);

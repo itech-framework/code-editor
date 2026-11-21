@@ -8,7 +8,9 @@ import java.util.concurrent.Executors;
 
 import io.github.itech_framework.code_editor.CodeEditor;
 import io.github.itech_framework.code_editor.EditorFeature;
+import io.github.itech_framework.code_editor.internal.EditorInternals;
 import io.github.itech_framework.code_editor.internal.FoldLogic;
+import io.github.itech_framework.code_editor.internal.FoldState;
 import io.github.itech_framework.code_editor.language.LanguageRegistry;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -18,188 +20,192 @@ import javafx.scene.input.KeyEvent;
 
 public final class FoldFeature implements EditorFeature {
 
-    public static final String ID = "fold";
+	public static final String ID = "fold";
 
-    public static final String HEADER_CLASS = "fold-header";
+	private static FoldState state(CodeEditor target) {
+		return EditorInternals.of(target).foldState();
+	}
 
-    private static final Set<String> SKIPPED = Set.of("tok-string", "tok-comment");
+	public static final String HEADER_CLASS = "fold-header";
 
-    private static final ExecutorService WORKER = Executors.newSingleThreadExecutor(task -> {
-        Thread thread = new Thread(task, "code-editor-fold");
-        thread.setDaemon(true);
-        return thread;
-    });
+	private static final Set<String> SKIPPED = Set.of("tok-string", "tok-comment");
 
-    private final EventHandler<KeyEvent> keyHandler = this::onKeyPressed;
+	private static final ExecutorService WORKER = Executors.newSingleThreadExecutor(task -> {
+		Thread thread = new Thread(task, "code-editor-fold");
+		thread.setDaemon(true);
+		return thread;
+	});
 
-    private final ChangeListener<String> languageListener = (obs, old, value) -> request();
+	private final EventHandler<KeyEvent> keyHandler = this::onKeyPressed;
 
-    private CodeEditor editor;
+	private final ChangeListener<String> languageListener = (obs, old, value) -> request();
 
-    private Runnable stopTextListening;
+	private CodeEditor editor;
 
-    private Runnable stopHighlightListening;
+	private Runnable stopTextListening;
 
-    private int generation;
+	private Runnable stopHighlightListening;
 
-    private boolean hasFolds;
+	private int generation;
 
-    private boolean marked;
+	private boolean hasFolds;
 
-    @Override
-    public String getId() {
-        return ID;
-    }
+	private boolean marked;
 
-    @Override
-    public void install(CodeEditor target) {
-        editor = target;
-        target.addEventFilter(KeyEvent.KEY_PRESSED, keyHandler);
-        target.languageProperty().addListener(languageListener);
-        stopTextListening = target.addTextChangeListener((position, removed, inserted) -> generation++);
-        stopHighlightListening = target.addHighlightListener(this::request);
-        Platform.runLater(this::request);
-    }
+	@Override
+	public String getId() {
+		return ID;
+	}
 
-    @Override
-    public void uninstall(CodeEditor target) {
-        generation++;
-        target.removeEventFilter(KeyEvent.KEY_PRESSED, keyHandler);
-        target.languageProperty().removeListener(languageListener);
-        if (stopTextListening != null) {
-            stopTextListening.run();
-            stopTextListening = null;
-        }
-        if (stopHighlightListening != null) {
-            stopHighlightListening.run();
-            stopHighlightListening = null;
-        }
-        apply(target, List.of());
-        editor = null;
-    }
+	@Override
+	public void install(CodeEditor target) {
+		editor = target;
+		target.addEventFilter(KeyEvent.KEY_PRESSED, keyHandler);
+		target.languageProperty().addListener(languageListener);
+		stopTextListening = target.addTextChangeListener((position, removed, inserted) -> generation++);
+		stopHighlightListening = target.addHighlightListener(this::request);
+		Platform.runLater(this::request);
+	}
 
-    public boolean foldAtCaret() {
-        CodeEditor target = editor;
-        if (target == null) {
-            return false;
-        }
-        int line = target.getLineOfOffset(target.getCaretPosition());
-        FoldLogic.Range range = FoldLogic.innermost(target.foldState().getRanges(), line, r -> canFold(target, r));
-        if (range == null) {
-            return false;
-        }
-        target.hideLines(range.firstHiddenLine(), range.lastHiddenLine());
-        hasFolds = true;
-        syncMarks(target);
-        target.foldState().touch();
-        return true;
-    }
+	@Override
+	public void uninstall(CodeEditor target) {
+		generation++;
+		target.removeEventFilter(KeyEvent.KEY_PRESSED, keyHandler);
+		target.languageProperty().removeListener(languageListener);
+		if (stopTextListening != null) {
+			stopTextListening.run();
+			stopTextListening = null;
+		}
+		if (stopHighlightListening != null) {
+			stopHighlightListening.run();
+			stopHighlightListening = null;
+		}
+		apply(target, List.of());
+		editor = null;
+	}
 
-    public boolean unfoldAtCaret() {
-        CodeEditor target = editor;
-        if (target == null) {
-            return false;
-        }
-        int line = target.getLineOfOffset(target.getCaretPosition());
-        FoldLogic.Range range = FoldLogic.innermost(target.foldState().getRanges(), line, r -> canUnfold(target, r));
-        if (range == null) {
-            return false;
-        }
-        target.showLinesAfter(range.startLine());
-        syncMarks(target);
-        target.foldState().touch();
-        return true;
-    }
+	public boolean foldAtCaret() {
+		CodeEditor target = editor;
+		if (target == null) {
+			return false;
+		}
+		int line = target.getLineOfOffset(target.getCaretPosition());
+		FoldLogic.Range range = FoldLogic.innermost(state(target).getRanges(), line, r -> canFold(target, r));
+		if (range == null) {
+			return false;
+		}
+		target.hideLines(range.firstHiddenLine(), range.lastHiddenLine());
+		hasFolds = true;
+		syncMarks(target);
+		state(target).touch();
+		return true;
+	}
 
-    public boolean toggleAt(int line) {
-        CodeEditor target = editor;
-        if (target == null) {
-            return false;
-        }
-        FoldLogic.Range range = FoldLogic.startingAt(target.foldState().getRanges(), line);
-        if (range == null || !valid(target, range)) {
-            return false;
-        }
-        if (target.isLineHidden(range.firstHiddenLine())) {
-            target.showLinesAfter(range.startLine());
-        } else {
-            target.hideLines(range.firstHiddenLine(), range.lastHiddenLine());
-            hasFolds = true;
-        }
-        syncMarks(target);
-        target.foldState().touch();
-        return true;
-    }
+	public boolean unfoldAtCaret() {
+		CodeEditor target = editor;
+		if (target == null) {
+			return false;
+		}
+		int line = target.getLineOfOffset(target.getCaretPosition());
+		FoldLogic.Range range = FoldLogic.innermost(state(target).getRanges(), line, r -> canUnfold(target, r));
+		if (range == null) {
+			return false;
+		}
+		target.showLinesAfter(range.startLine());
+		syncMarks(target);
+		state(target).touch();
+		return true;
+	}
 
-    private void onKeyPressed(KeyEvent event) {
-        CodeEditor target = editor;
-        if (target == null || !target.isTextAreaEvent(event)) {
-            return;
-        }
-        if (!event.isShortcutDown() || !event.isShiftDown() || event.isAltDown()) {
-            return;
-        }
-        KeyCode code = event.getCode();
-        if (code == KeyCode.OPEN_BRACKET) {
-            event.consume();
-            foldAtCaret();
-        } else if (code == KeyCode.CLOSE_BRACKET) {
-            event.consume();
-            unfoldAtCaret();
-        }
-    }
+	public boolean toggleAt(int line) {
+		CodeEditor target = editor;
+		if (target == null) {
+			return false;
+		}
+		FoldLogic.Range range = FoldLogic.startingAt(state(target).getRanges(), line);
+		if (range == null || !valid(target, range)) {
+			return false;
+		}
+		if (target.isLineHidden(range.firstHiddenLine())) {
+			target.showLinesAfter(range.startLine());
+		} else {
+			target.hideLines(range.firstHiddenLine(), range.lastHiddenLine());
+			hasFolds = true;
+		}
+		syncMarks(target);
+		state(target).touch();
+		return true;
+	}
 
-    private void request() {
-        CodeEditor target = editor;
-        if (target == null) {
-            return;
-        }
-        int token = ++generation;
-        if (LanguageRegistry.PLAIN_TEXT.equals(target.getLanguage())) {
-            apply(target, List.of());
-            return;
-        }
-        String text = target.getText();
-        BitSet skipped = target.offsetsWithStyle(SKIPPED);
-        WORKER.execute(() -> {
-            List<FoldLogic.Range> ranges = FoldLogic.compute(text, skipped::get);
-            Platform.runLater(() -> {
-                if (editor == target && generation == token) {
-                    apply(target, ranges);
-                }
-            });
-        });
-    }
+	private void onKeyPressed(KeyEvent event) {
+		CodeEditor target = editor;
+		if (target == null || !target.isTextAreaEvent(event)) {
+			return;
+		}
+		if (!event.isShortcutDown() || !event.isShiftDown() || event.isAltDown()) {
+			return;
+		}
+		KeyCode code = event.getCode();
+		if (code == KeyCode.OPEN_BRACKET) {
+			event.consume();
+			foldAtCaret();
+		} else if (code == KeyCode.CLOSE_BRACKET) {
+			event.consume();
+			unfoldAtCaret();
+		}
+	}
 
-    private void apply(CodeEditor target, List<FoldLogic.Range> ranges) {
-        if (hasFolds) {
-            FoldLogic.Scan scan = FoldLogic.scan(ranges, target::isLineHidden, target.getLineCount());
-            for (int header : scan.stale()) {
-                target.showLinesAfter(header);
-            }
-            hasFolds = scan.runs() > scan.stale().size();
-        }
-        syncMarks(target);
-        target.foldState().setRanges(ranges);
-    }
+	private void request() {
+		CodeEditor target = editor;
+		if (target == null) {
+			return;
+		}
+		int token = ++generation;
+		if (LanguageRegistry.PLAIN_TEXT.equals(target.getLanguage())) {
+			apply(target, List.of());
+			return;
+		}
+		String text = target.getText();
+		BitSet skipped = target.offsetsWithStyle(SKIPPED);
+		WORKER.execute(() -> {
+			List<FoldLogic.Range> ranges = FoldLogic.compute(text, skipped::get);
+			Platform.runLater(() -> {
+				if (editor == target && generation == token) {
+					apply(target, ranges);
+				}
+			});
+		});
+	}
 
-    private void syncMarks(CodeEditor target) {
-        if (!hasFolds && !marked) {
-            return;
-        }
-        marked = target.markFoldHeaders(HEADER_CLASS);
-    }
+	private void apply(CodeEditor target, List<FoldLogic.Range> ranges) {
+		if (hasFolds) {
+			FoldLogic.Scan scan = FoldLogic.scan(ranges, target::isLineHidden, target.getLineCount());
+			for (int header : scan.stale()) {
+				target.showLinesAfter(header);
+			}
+			hasFolds = scan.runs() > scan.stale().size();
+		}
+		syncMarks(target);
+		state(target).setRanges(ranges);
+	}
 
-    private static boolean valid(CodeEditor target, FoldLogic.Range range) {
-        return range.endLine() < target.getLineCount();
-    }
+	private void syncMarks(CodeEditor target) {
+		if (!hasFolds && !marked) {
+			return;
+		}
+		marked = target.markFoldHeaders(HEADER_CLASS);
+	}
 
-    private static boolean canFold(CodeEditor target, FoldLogic.Range range) {
-        return valid(target, range) && !target.isLineHidden(range.firstHiddenLine());
-    }
+	private static boolean valid(CodeEditor target, FoldLogic.Range range) {
+		return range.endLine() < target.getLineCount();
+	}
 
-    private static boolean canUnfold(CodeEditor target, FoldLogic.Range range) {
-        return valid(target, range) && target.isLineHidden(range.firstHiddenLine())
-                && !target.isLineHidden(range.startLine());
-    }
+	private static boolean canFold(CodeEditor target, FoldLogic.Range range) {
+		return valid(target, range) && !target.isLineHidden(range.firstHiddenLine());
+	}
+
+	private static boolean canUnfold(CodeEditor target, FoldLogic.Range range) {
+		return valid(target, range) && target.isLineHidden(range.firstHiddenLine())
+				&& !target.isLineHidden(range.startLine());
+	}
 }

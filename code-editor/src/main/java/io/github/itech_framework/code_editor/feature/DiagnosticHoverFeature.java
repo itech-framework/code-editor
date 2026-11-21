@@ -7,6 +7,7 @@ import io.github.itech_framework.code_editor.CodeEditor;
 import io.github.itech_framework.code_editor.EditorFeature;
 import io.github.itech_framework.code_editor.diagnostics.Diagnostic;
 import io.github.itech_framework.code_editor.internal.DiagnosticTooltip;
+import io.github.itech_framework.code_editor.internal.EditorInternals;
 import javafx.animation.PauseTransition;
 import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
@@ -60,7 +61,7 @@ public final class DiagnosticHoverFeature implements EditorFeature {
     @Override
     public void install(CodeEditor target) {
         editor = target;
-        tooltip = target.diagnosticTooltip();
+        tooltip = EditorInternals.of(target).diagnosticTooltip();
         delay.setOnFinished(event -> show());
         target.addEventFilter(MouseEvent.MOUSE_MOVED, movedHandler);
         target.addEventFilter(MouseEvent.MOUSE_PRESSED, mouseDismiss);

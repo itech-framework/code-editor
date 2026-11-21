@@ -8,6 +8,7 @@ import java.util.Set;
 import io.github.itech_framework.code_editor.CodeEditor;
 import io.github.itech_framework.code_editor.EditorFeature;
 import io.github.itech_framework.code_editor.internal.ExtraCarets;
+import io.github.itech_framework.code_editor.internal.KeyChords;
 import io.github.itech_framework.code_editor.internal.MultiEditLogic;
 import io.github.itech_framework.code_editor.internal.SelectionLogic;
 import javafx.event.EventHandler;
@@ -179,13 +180,7 @@ public final class MultiCaretFeature implements EditorFeature {
     }
 
     private static boolean isTypingChord(KeyEvent event) {
-        if (event.isMetaDown()) {
-            return false;
-        }
-        if (event.isControlDown()) {
-            return event.isAltDown();
-        }
-        return !event.isAltDown();
+        return KeyChords.isTypingPress(event.isControlDown(), event.isAltDown(), event.isMetaDown());
     }
 
     private static boolean isTypingKey(KeyCode code) {

@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 
 import io.github.itech_framework.code_editor.CodeEditor;
 import io.github.itech_framework.code_editor.EditorFeature;
+import io.github.itech_framework.code_editor.internal.EditorInternals;
 import io.github.itech_framework.code_editor.internal.FindLogic;
 import io.github.itech_framework.code_editor.internal.FindPanel;
 import javafx.animation.Animation;
@@ -81,7 +82,7 @@ public final class FindFeature implements EditorFeature {
 	@Override
 	public void install(CodeEditor target) {
 		editor = target;
-		panel = target.findPanel();
+		panel = EditorInternals.of(target).findPanel();
 		idle.setOnFinished(event -> runSearch());
 		target.addEventFilter(KeyEvent.KEY_PRESSED, keyHandler);
 		panel.queryProperty().addListener(queryListener);

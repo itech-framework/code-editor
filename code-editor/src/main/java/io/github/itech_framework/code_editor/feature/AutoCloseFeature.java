@@ -5,6 +5,7 @@ import java.util.List;
 import io.github.itech_framework.code_editor.CodeEditor;
 import io.github.itech_framework.code_editor.EditorFeature;
 import io.github.itech_framework.code_editor.internal.AutoCloseLogic;
+import io.github.itech_framework.code_editor.internal.KeyChords;
 import io.github.itech_framework.code_editor.language.BracketPair;
 import javafx.event.EventHandler;
 import javafx.scene.control.IndexRange;
@@ -45,7 +46,7 @@ public final class AutoCloseFeature implements EditorFeature {
         if (target == null || target.hasExtraCarets() || !target.isEditable() || !target.isTextAreaEvent(event)) {
             return;
         }
-        if (event.isMetaDown() || (event.isControlDown() && !event.isAltDown())) {
+        if (!KeyChords.isTypedText(event.isControlDown(), event.isAltDown(), event.isMetaDown())) {
             return;
         }
         String text = event.getCharacter();

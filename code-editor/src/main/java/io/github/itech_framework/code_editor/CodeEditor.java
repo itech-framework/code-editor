@@ -39,6 +39,7 @@ import io.github.itech_framework.code_editor.formatting.CodeFormatter;
 import io.github.itech_framework.code_editor.internal.BuiltInCompletion;
 import io.github.itech_framework.code_editor.internal.CompletionPopup;
 import io.github.itech_framework.code_editor.internal.DiagnosticTooltip;
+import io.github.itech_framework.code_editor.internal.EditorInternals;
 import io.github.itech_framework.code_editor.internal.ExtraCarets;
 import io.github.itech_framework.code_editor.internal.FindPanel;
 import io.github.itech_framework.code_editor.internal.FoldMarkers;
@@ -156,6 +157,9 @@ public class CodeEditor extends Control {
 		setFocusTraversable(false);
 		setMinSize(0, 0);
 		setPrefSize(600, 400);
+		
+		EditorInternals.attach(this, new EditorInternals(findPanel, goToLinePanel, diagnosticTooltip, completionPopup, foldState));
+		
 		area.setUndoManager(UndoUtils.plainTextUndoManager(area));
 		highlighter = new SyntaxHighlighter(area, LanguageRegistry.getDefault().require(getLanguage()).getTokenizer());
 		showLineNumbers.addListener((obs, old, show) -> updateGutter());
@@ -385,13 +389,6 @@ public class CodeEditor extends Control {
 		return area.hit(point.getX(), point.getY()).getCharacterIndex();
 	}
 
-	public final DiagnosticTooltip diagnosticTooltip() {
-		return diagnosticTooltip;
-	}
-
-	public final CompletionPopup completionPopup() {
-		return completionPopup;
-	}
 
 	public final Optional<Bounds> getCaretBoundsOnScreen() {
 		return area.getCaretBounds();
@@ -700,18 +697,11 @@ public class CodeEditor extends Control {
 		return area;
 	}
 
-	public final FindPanel findPanel() {
-		return findPanel;
-	}
-
 	private void closeFindPanel() {
 		setFindPanelVisible(false);
 		area.requestFocus();
 	}
 
-	public final GoToLinePanel goToLinePanel() {
-		return goToLinePanel;
-	}
 
 	public final boolean isGoToLineVisible() {
 		return goToLinePanel.isVisible();
@@ -727,10 +717,6 @@ public class CodeEditor extends Control {
 		area.moveTo(offset);
 		area.showParagraphAtCenter(index);
 		area.requestFocus();
-	}
-
-	public final FoldState foldState() {
-		return foldState;
 	}
 
 	public final boolean isLineHidden(int line) {
