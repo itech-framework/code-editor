@@ -15,4 +15,14 @@ public final class KeyChords {
         }
         return control ? alt : !alt;
     }
+    
+    public static boolean isCommentToggle(String codeName, String text, boolean shift) {
+        if ("/".equals(text)) {
+            return true;
+        }
+        if ("SLASH".equals(codeName) || "DIVIDE".equals(codeName)) {
+            return !shift;
+        }
+        return "DIGIT7".equals(codeName) && shift && (text == null || text.isEmpty());
+    }
 }

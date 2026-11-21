@@ -12,11 +12,13 @@ import io.github.itech_framework.code_editor.internal.EditorInternals;
 import io.github.itech_framework.code_editor.internal.FoldLogic;
 import io.github.itech_framework.code_editor.internal.FoldState;
 import io.github.itech_framework.code_editor.language.LanguageRegistry;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.util.Duration;
 
 public final class FoldFeature implements EditorFeature {
 
@@ -39,6 +41,12 @@ public final class FoldFeature implements EditorFeature {
 	private final EventHandler<KeyEvent> keyHandler = this::onKeyPressed;
 
 	private final ChangeListener<String> languageListener = (obs, old, value) -> request();
+	
+	private static final Duration DEBOUNCE = Duration.millis(250);
+
+	public static final int MAX_TEXT_LENGTH = 2_000_000;
+	
+	private final PauseTransition debounce = new PauseTransition(DEBOUNCE);
 
 	private CodeEditor editor;
 
@@ -51,6 +59,8 @@ public final class FoldFeature implements EditorFeature {
 	private boolean hasFolds;
 
 	private boolean marked;
+	
+	
 
 	@Override
 	public String getId() {
@@ -63,12 +73,14 @@ public final class FoldFeature implements EditorFeature {
 		target.addEventFilter(KeyEvent.KEY_PRESSED, keyHandler);
 		target.languageProperty().addListener(languageListener);
 		stopTextListening = target.addTextChangeListener((position, removed, inserted) -> generation++);
-		stopHighlightListening = target.addHighlightListener(this::request);
+		debounce.setOnFinished(event -> request());
+		stopHighlightListening = target.addHighlightListener(debounce::playFromStart);
 		Platform.runLater(this::request);
 	}
 
 	@Override
 	public void uninstall(CodeEditor target) {
+		debounce.stop();
 		generation++;
 		target.removeEventFilter(KeyEvent.KEY_PRESSED, keyHandler);
 		target.languageProperty().removeListener(languageListener);
@@ -161,7 +173,7 @@ public final class FoldFeature implements EditorFeature {
 			return;
 		}
 		int token = ++generation;
-		if (LanguageRegistry.PLAIN_TEXT.equals(target.getLanguage())) {
+		if (LanguageRegistry.PLAIN_TEXT.equals(target.getLanguage()) || target.getLength() > MAX_TEXT_LENGTH) {
 			apply(target, List.of());
 			return;
 		}

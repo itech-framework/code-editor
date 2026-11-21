@@ -3,7 +3,6 @@ package io.github.itech_framework.code_editor.internal;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -19,7 +18,6 @@ import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 import org.fxmisc.richtext.model.TwoDimensional.Bias;
 
-import io.github.itech_framework.code_editor.language.LineTokens;
 import io.github.itech_framework.code_editor.language.Token;
 import io.github.itech_framework.code_editor.language.Tokenizer;
 import io.github.itech_framework.code_editor.language.TokenizerState;
@@ -30,6 +28,8 @@ public final class SyntaxHighlighter {
     private static final System.Logger LOG = System.getLogger(SyntaxHighlighter.class.getName());
 
     private static final int MAX_LINE_LENGTH = 20_000;
+
+    private static final int WINDOW_LINES = 500;
 
     private static final Duration IDLE_DELAY = Duration.ofMillis(60);
 
@@ -43,22 +43,19 @@ public final class SyntaxHighlighter {
         return thread;
     });
 
-    private record LineInfo(TokenizerState start, TokenizerState end) {
-    }
-
-    private record Outcome(int token, Tokenizer tokenizer, List<LineInfo> lines, int from,
-            StyleSpans<Collection<String>> spans) {
+    private record Outcome(int token, Tokenizer tokenizer, int first, List<HighlightRun.LineInfo> infos, int from,
+            StyleSpans<Collection<String>> spans, boolean incomplete) {
     }
 
     private final CodeArea area;
 
     private final AtomicInteger latest = new AtomicInteger();
-    
+
     private final List<Runnable> appliedListeners = new CopyOnWriteArrayList<>();
 
-    private Tokenizer tokenizer;
+    private final HighlightCache cache = new HighlightCache();
 
-    private List<LineInfo> cache = new ArrayList<>();
+    private Tokenizer tokenizer;
 
     public SyntaxHighlighter(CodeArea area, Tokenizer tokenizer) {
         this.area = Objects.requireNonNull(area, "area");
@@ -67,7 +64,7 @@ public final class SyntaxHighlighter {
         area.multiPlainChanges().subscribe(this::onChanges);
         area.plainTextChanges().successionEnds(IDLE_DELAY).subscribe(change -> schedule());
     }
-    
+
     public Runnable addAppliedListener(Runnable listener) {
         appliedListeners.add(listener);
         return () -> appliedListeners.remove(listener);
@@ -83,12 +80,12 @@ public final class SyntaxHighlighter {
     private void onChanges(List<PlainTextChange> changes) {
         if (changes.size() == 1) {
             onChange(changes.get(0));
-            return;
+        } else {
+            latest.incrementAndGet();
+            resetCache();
         }
-        latest.incrementAndGet();
-        resetCache();
     }
-    
+
     private void onChange(PlainTextChange change) {
         latest.incrementAndGet();
         int line = area.offsetToPosition(change.getPosition(), Bias.Forward).getMajor();
@@ -96,16 +93,7 @@ public final class SyntaxHighlighter {
             resetCache();
             return;
         }
-        int removed = breaks(change.getRemoved());
-        int inserted = breaks(change.getInserted());
-        cache.set(line, null);
-        if (removed > 0) {
-            int end = Math.min(cache.size(), line + 1 + removed);
-            cache.subList(line + 1, end).clear();
-        }
-        if (inserted > 0) {
-            cache.addAll(line + 1, Collections.nCopies(inserted, (LineInfo) null));
-        }
+        cache.edit(line, breaks(change.getRemoved()), breaks(change.getInserted()));
     }
 
     private void schedule() {
@@ -113,65 +101,46 @@ public final class SyntaxHighlighter {
         if (cache.size() != count) {
             resetCache();
         }
-        List<String> lines = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) {
+        HighlightCache.Plan plan = cache.plan(WINDOW_LINES);
+        if (plan == null) {
+            return;
+        }
+        List<String> lines = new ArrayList<>(plan.end() - plan.first());
+        for (int i = plan.first(); i < plan.end(); i++) {
             lines.add(area.getText(i));
         }
-        List<LineInfo> snapshot = new ArrayList<>(cache);
+        int from = area.getAbsolutePosition(plan.first(), 0);
         int token = latest.get();
         Tokenizer current = tokenizer;
         WORKER.execute(() -> {
             try {
-                run(token, current, lines, snapshot);
+                run(token, current, plan, lines, from, count);
             } catch (RuntimeException ex) {
                 LOG.log(System.Logger.Level.WARNING, "Syntax highlighting failed", ex);
             }
         });
     }
 
-    private void run(int token, Tokenizer tk, List<String> lines, List<LineInfo> old) {
-        int count = lines.size();
-        int first = 0;
-        while (first < count && old.get(first) != null) {
-            first++;
-        }
-        if (first == count) {
+    private void run(int token, Tokenizer tk, HighlightCache.Plan plan, List<String> lines, int from, int count) {
+        TokenizerState start = plan.previous() == null ? tk.initialState() : plan.previous().end();
+        HighlightRun.Result result = HighlightRun.run(tk, lines, start, plan.window(), plan.lastDirty(), plan.more(),
+                MAX_LINE_LENGTH, () -> latest.get() != token);
+        if (result == null) {
             return;
         }
-        int lastDirty = count - 1;
-        while (old.get(lastDirty) != null) {
-            lastDirty--;
-        }
-        int from = 0;
-        for (int i = 0; i < first; i++) {
-            from += lines.get(i).length() + 1;
-        }
-        TokenizerState state = first == 0 ? tk.initialState() : old.get(first - 1).end();
-        List<LineInfo> updated = new ArrayList<>(old);
         StyleSpansBuilder<Collection<String>> builder = new StyleSpansBuilder<>();
         int covered = 0;
-        for (int i = first; i < count; i++) {
-            if (latest.get() != token) {
-                return;
-            }
-            LineInfo previous = old.get(i);
-            if (i > lastDirty && previous != null && previous.start().equals(state)) {
-                break;
-            }
-            String line = lines.get(i);
-            LineTokens result = line.length() > MAX_LINE_LENGTH ? new LineTokens(List.of(), state)
-                    : tk.tokenize(line, state);
-            updated.set(i, new LineInfo(state, result.endState()));
-            appendSpans(builder, line, result.tokens());
+        for (int k = 0; k < result.infos().size(); k++) {
+            String line = lines.get(k);
+            appendSpans(builder, line, result.tokens().get(k));
             covered += line.length();
-            if (i < count - 1) {
+            if (plan.first() + k < count - 1) {
                 builder.add(NO_STYLE, 1);
                 covered++;
             }
-            state = result.endState();
         }
         StyleSpans<Collection<String>> spans = covered > 0 ? builder.create() : null;
-        Outcome outcome = new Outcome(token, tk, updated, from, spans);
+        Outcome outcome = new Outcome(token, tk, plan.first(), result.infos(), from, spans, result.incomplete());
         Platform.runLater(() -> apply(outcome));
     }
 
@@ -179,17 +148,20 @@ public final class SyntaxHighlighter {
         if (outcome.token() != latest.get() || outcome.tokenizer() != tokenizer) {
             return;
         }
-        cache = outcome.lines();
+        cache.apply(outcome.first(), outcome.infos(), outcome.incomplete());
         if (outcome.spans() != null) {
             area.setStyleSpans(outcome.from(), outcome.spans());
             for (Runnable listener : appliedListeners) {
                 listener.run();
             }
         }
+        if (outcome.incomplete()) {
+            schedule();
+        }
     }
 
     private void resetCache() {
-        cache = new ArrayList<>(Collections.nCopies(area.getParagraphs().size(), (LineInfo) null));
+        cache.reset(area.getParagraphs().size());
     }
 
     private static void appendSpans(StyleSpansBuilder<Collection<String>> builder, String line, List<Token> tokens) {

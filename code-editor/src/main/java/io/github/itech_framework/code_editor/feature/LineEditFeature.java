@@ -2,6 +2,7 @@ package io.github.itech_framework.code_editor.feature;
 
 import io.github.itech_framework.code_editor.CodeEditor;
 import io.github.itech_framework.code_editor.EditorFeature;
+import io.github.itech_framework.code_editor.internal.KeyChords;
 import io.github.itech_framework.code_editor.internal.LineOpsLogic;
 import javafx.event.EventHandler;
 import javafx.scene.control.IndexRange;
@@ -54,8 +55,8 @@ public final class LineEditFeature implements EditorFeature {
             }
         } else if (code == KeyCode.K && event.isShortcutDown() && event.isShiftDown() && !event.isAltDown()) {
             edit = LineOpsLogic.deleteLines(target.getText(), start, end);
-        } else if ((code == KeyCode.SLASH || code == KeyCode.DIVIDE) && event.isShortcutDown()
-                && !event.isShiftDown() && !event.isAltDown()) {
+        } else if (event.isShortcutDown() && !event.isAltDown()
+                && KeyChords.isCommentToggle(code.name(), event.getText(), event.isShiftDown())) {
             String prefix = target.getLanguageDefinition().getLineComment().orElse(null);
             if (prefix == null) {
                 return;
