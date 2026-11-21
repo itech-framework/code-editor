@@ -45,4 +45,8 @@
     -ce-fold-header: rgba(38, 79, 120, 0.55);
     -ce-fold-marker: rgba(180, 180, 180, 0.25);
     -ce-fold-marker-text: #c8c8c8;
+    
+    -ce-diag-error: #f14c4c;
+    -ce-diag-warning: #cca700;
+    -ce-diag-info: #3794ff;
 }

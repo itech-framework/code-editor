@@ -15,9 +15,13 @@ import org.fxmisc.richtext.model.TwoDimensional.Bias;
 import org.fxmisc.richtext.util.UndoUtils;
 import org.reactfx.Subscription;
 
+import io.github.itech_framework.code_editor.diagnostics.Diagnostic;
+import io.github.itech_framework.code_editor.diagnostics.DiagnosticSeverity;
+import io.github.itech_framework.code_editor.diagnostics.DiagnosticsProvider;
 import io.github.itech_framework.code_editor.feature.AutoCloseFeature;
 import io.github.itech_framework.code_editor.feature.AutoIndentFeature;
 import io.github.itech_framework.code_editor.feature.BracketMatchFeature;
+import io.github.itech_framework.code_editor.feature.DiagnosticsFeature;
 import io.github.itech_framework.code_editor.feature.FindFeature;
 import io.github.itech_framework.code_editor.feature.FoldFeature;
 import io.github.itech_framework.code_editor.feature.GoToLineFeature;
@@ -40,9 +44,15 @@ import io.github.itech_framework.code_editor.theme.ThemeManager;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
@@ -89,6 +99,12 @@ public class CodeEditor extends Control {
     private final BooleanProperty insertSpaces = new SimpleBooleanProperty(this, "insertSpaces", true);
 
     private final EditorFeatures features = new EditorFeatures(this);
+    
+    private final ObjectProperty<DiagnosticsProvider> diagnosticsProvider = new SimpleObjectProperty<>(this, "diagnosticsProvider");
+
+    private final ReadOnlyObjectWrapper<List<Diagnostic>> diagnostics = new ReadOnlyObjectWrapper<>(this, "diagnostics", List.of());
+
+    private final ReadOnlyIntegerWrapper errorCount = new ReadOnlyIntegerWrapper(this, "errorCount");
     
     private final FindPanel findPanel = new FindPanel();
     
@@ -142,6 +158,7 @@ public class CodeEditor extends Control {
         features.register(new LineEditFeature());
         features.register(new FoldFeature());
         features.register(new MultiCaretFeature());
+        features.register(new DiagnosticsFeature());
     }
 
     public final String getText() {
@@ -476,6 +493,46 @@ public class CodeEditor extends Control {
 
     public final String getIndentUnit() {
         return isInsertSpaces() ? " ".repeat(getTabSize()) : "\t";
+    }
+    
+    public final DiagnosticsProvider getDiagnosticsProvider() {
+        return diagnosticsProvider.get();
+    }
+
+    public final void setDiagnosticsProvider(DiagnosticsProvider provider) {
+        diagnosticsProvider.set(provider);
+    }
+
+    public final ObjectProperty<DiagnosticsProvider> diagnosticsProviderProperty() {
+        return diagnosticsProvider;
+    }
+
+    public final List<Diagnostic> getDiagnostics() {
+        return diagnostics.get();
+    }
+
+    public final ReadOnlyObjectProperty<List<Diagnostic>> diagnosticsProperty() {
+        return diagnostics.getReadOnlyProperty();
+    }
+
+    public final int getErrorCount() {
+        return errorCount.get();
+    }
+
+    public final ReadOnlyIntegerProperty errorCountProperty() {
+        return errorCount.getReadOnlyProperty();
+    }
+
+    public final void publishDiagnostics(List<Diagnostic> list) {
+        List<Diagnostic> copy = List.copyOf(list);
+        int errors = 0;
+        for (Diagnostic diagnostic : copy) {
+            if (diagnostic.severity() == DiagnosticSeverity.ERROR) {
+                errors++;
+            }
+        }
+        diagnostics.set(copy);
+        errorCount.set(errors);
     }
 
     public final EditorFeatures features() {

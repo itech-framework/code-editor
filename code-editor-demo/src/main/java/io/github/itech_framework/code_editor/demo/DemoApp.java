@@ -7,8 +7,10 @@ import java.nio.file.Path;
 import java.util.List;
 
 import io.github.itech_framework.code_editor.CodeEditor;
+import io.github.itech_framework.code_editor.diagnostics.Diagnostic;
 import io.github.itech_framework.code_editor.feature.AutoCloseFeature;
 import io.github.itech_framework.code_editor.feature.AutoIndentFeature;
+import io.github.itech_framework.code_editor.feature.DiagnosticsFeature;
 import io.github.itech_framework.code_editor.language.BracketPair;
 import io.github.itech_framework.code_editor.language.EditorLanguage;
 import io.github.itech_framework.code_editor.language.LanguageRegistry;
@@ -118,6 +120,11 @@ public class DemoApp extends Application {
         autoClose.selectedProperty().addListener(
                 (obs, old, value) -> editor.features().setEnabled(AutoCloseFeature.ID, value));
 
+        CheckBox diagnostics = new CheckBox("Diagnostics");
+        diagnostics.setSelected(editor.features().isEnabled(DiagnosticsFeature.ID));
+        diagnostics.selectedProperty().addListener(
+                (obs, old, value) -> editor.features().setEnabled(DiagnosticsFeature.ID, value));
+        
         Spinner<Integer> tabSize = new Spinner<>(1, 16, editor.getTabSize());
         tabSize.valueProperty().addListener((obs, old, value) -> editor.setTabSize(value));
 
@@ -136,9 +143,15 @@ public class DemoApp extends Application {
         });
 
         Label status = new Label();
-        Runnable refresh = () -> status.setText(editor.getLength() + " chars | language: " + editor.getLanguage());
+        Runnable refresh = () -> {
+            List<Diagnostic> found = editor.getDiagnostics();
+            String problems = found.isEmpty() ? "no problems"
+                    : editor.getErrorCount() + " error(s), " + found.size() + " total, first: line "
+                            + (editor.getLineOfOffset(found.get(0).start()) + 1) + ": " + found.get(0).message();
+            status.setText(editor.getLength() + " chars | language: " + editor.getLanguage() + " | " + problems);
+        };
         refresh.run();
-        editor.textProperty().addListener((obs, old, value) -> refresh.run());
+        editor.diagnosticsProperty().addListener((obs, old, value) -> refresh.run());
 
         ObservableList<String> languageIds = FXCollections.observableArrayList(LanguageRegistry.getDefault().ids());
         ComboBox<String> language = new ComboBox<>(languageIds);

@@ -46,6 +46,10 @@
 	
 	-ce-fold-marker: rgba(128, 128, 128, 0.3);
 	-ce-fold-marker-text: #6b6b6b;
+	
+	-ce-diag-error: #e51400;
+	-ce-diag-warning: #bf8803;
+	-ce-diag-info: #1a85ff;
 }
 
 .code-editor .code-area {
@@ -201,6 +205,24 @@
     -rtfx-background-color: -ce-find-match-current;
     -rtfx-border-stroke-color: -ce-find-match-current-border;
     -rtfx-border-stroke-width: 1px;
+}
+
+.code-editor .code-area .text.diag-info {
+    -rtfx-underline-color: -ce-diag-info;
+    -rtfx-underline-width: 1.5px;
+    -rtfx-underline-wave-radius: 1.5px;
+}
+
+.code-editor .code-area .text.diag-warning {
+    -rtfx-underline-color: -ce-diag-warning;
+    -rtfx-underline-width: 1.5px;
+    -rtfx-underline-wave-radius: 1.5px;
+}
+
+.code-editor .code-area .text.diag-error {
+    -rtfx-underline-color: -ce-diag-error;
+    -rtfx-underline-width: 1.5px;
+    -rtfx-underline-wave-radius: 1.5px;
 }
 
 .code-editor .find-panel {
