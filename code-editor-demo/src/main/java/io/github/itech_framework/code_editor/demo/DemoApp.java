@@ -27,6 +27,7 @@ import io.github.itech_framework.code_editor.theme.ThemeException;
 import io.github.itech_framework.code_editor.theme.ThemeLoader;
 import io.github.itech_framework.code_editor.theme.ThemeRegistry;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -296,10 +297,18 @@ public class DemoApp extends Application {
         CheckBox find = new CheckBox("Find panel");
         find.selectedProperty().bindBidirectional(editor.findPanelVisibleProperty());
 
+        Button benchmark = new Button("Benchmark");
+        benchmark.setFocusTraversable(false);
+        benchmark.setOnAction(event -> {
+            benchmark.setDisable(true);
+            new PerfBench(editor, text -> Platform.runLater(() -> status.setText(text)))
+                    .start(() -> benchmark.setDisable(false));
+        });
+        
         ToolBar bar = new ToolBar(editable, lineNumbers, currentLine, autoIndent, autoClose, new Label("Tab size"),
                 tabSize, spaces, new Label("Font size"), size, new Label("Theme"), theme, new Label("Language"),
                 language, unknown, sample, load, find, complete, autoComplete, dotProvider);
-        bar.getItems().add(loadTheme);
+        bar.getItems().addAll(loadTheme, benchmark);
         BorderPane root = new BorderPane(editor);
         root.setTop(bar);
         root.setBottom(status);
