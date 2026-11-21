@@ -3,7 +3,10 @@ package io.github.itech_framework.code_editor.language.template;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 
 import io.github.itech_framework.code_editor.language.EditorLanguage;
 
@@ -16,12 +19,21 @@ public final class TemplateLanguages {
 
     public static EditorLanguage fromTemplate(LanguageTemplate template) {
         Objects.requireNonNull(template, "template");
+        Set<String> keywords = new TreeSet<>();
+        for (List<TemplateRule> rules : template.states().values()) {
+            for (TemplateRule rule : rules) {
+                if (rule instanceof TemplateRule.Words words) {
+                    keywords.addAll(words.words());
+                }
+            }
+        }
         return EditorLanguage.builder(template.id())
                 .displayName(template.displayName())
                 .extensions(template.extensions())
                 .autoClosingPairs(template.autoClosingPairs())
                 .lineComment(template.lineComment())
                 .formatter(template.formatter())
+                .keywords(keywords)
                 .tokenizer(new TemplateTokenizer(template))
                 .build();
     }

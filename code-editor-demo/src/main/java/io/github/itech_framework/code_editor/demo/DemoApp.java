@@ -4,9 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import io.github.itech_framework.code_editor.CodeEditor;
+import io.github.itech_framework.code_editor.completion.CompletionItem;
+import io.github.itech_framework.code_editor.completion.CompletionProvider;
 import io.github.itech_framework.code_editor.diagnostics.Diagnostic;
 import io.github.itech_framework.code_editor.feature.AutoCloseFeature;
 import io.github.itech_framework.code_editor.feature.AutoIndentFeature;
@@ -206,12 +210,55 @@ public class DemoApp extends Application {
             }
         });
 
+        Button complete = new Button("Show completions");
+        complete.setFocusTraversable(false);
+        complete.setOnAction(event -> {
+            List<CompletionItem> items = editor.getCompletions();
+            status.setText(items.isEmpty() ? "No completions"
+                    : items.size() + " completions: "
+                            + items.stream().map(CompletionItem::label).limit(12).collect(Collectors.joining(", ")));
+        });
+        
+        CheckBox autoComplete = new CheckBox("Auto complete");
+        autoComplete.selectedProperty().bindBidirectional(editor.completionAutoOpenProperty());
+
+        CheckBox dotProvider = new CheckBox("Dot provider");
+        dotProvider.selectedProperty().addListener((obs, old, on) -> editor.setCompletionProvider(on
+                ? new CompletionProvider() {
+                    private final List<String> members = List.of("name", "email", "address", "age");
+
+                    @Override
+                    public List<CompletionItem> complete(String text, int caret) {
+                        int start = caret;
+                        while (start > 0 && Character.isLetterOrDigit(text.charAt(start - 1))) {
+                            start--;
+                        }
+                        if (start == 0 || text.charAt(start - 1) != '.') {
+                            return List.of();
+                        }
+                        String prefix = text.substring(start, caret);
+                        List<CompletionItem> items = new ArrayList<>();
+                        for (String member : members) {
+                            if (member.startsWith(prefix) && !member.equals(prefix)) {
+                                items.add(CompletionItem.of(member, CompletionItem.Kind.VARIABLE, start, caret));
+                            }
+                        }
+                        return items;
+                    }
+
+                    @Override
+                    public String triggerCharacters() {
+                        return ".";
+                    }
+                }
+                : null));
+        
         CheckBox find = new CheckBox("Find panel");
         find.selectedProperty().bindBidirectional(editor.findPanelVisibleProperty());
 
         ToolBar bar = new ToolBar(editable, lineNumbers, currentLine, autoIndent, autoClose, new Label("Tab size"),
                 tabSize, spaces, new Label("Font size"), size, new Label("Theme"), theme, new Label("Language"),
-                language, unknown, sample, load, find);
+                language, unknown, sample, load, find, complete, autoComplete, dotProvider);
         
         BorderPane root = new BorderPane(editor);
         root.setTop(bar);

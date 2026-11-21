@@ -3,6 +3,7 @@ package io.github.itech_framework.code_editor;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 
+import io.github.itech_framework.code_editor.internal.CompletionPopup;
 import io.github.itech_framework.code_editor.internal.DiagnosticTooltip;
 import io.github.itech_framework.code_editor.internal.FindPanel;
 import io.github.itech_framework.code_editor.internal.GoToLinePanel;
@@ -28,7 +29,9 @@ final class CodeEditorSkin extends SkinBase<CodeEditor> {
         StackPane.setMargin(goToPanel, new Insets(8, 0, 0, 0));
         DiagnosticTooltip tooltip = editor.diagnosticTooltip();
         StackPane.setAlignment(tooltip, Pos.TOP_LEFT);
-        stack.getChildren().addAll(scrollPane, findPanel, goToPanel, tooltip);
+        CompletionPopup completionPopup = editor.completionPopup();
+        StackPane.setAlignment(completionPopup, Pos.TOP_LEFT);
+        stack.getChildren().addAll(scrollPane, findPanel, goToPanel, tooltip, completionPopup);
         getChildren().add(stack);
     }
 

@@ -51,7 +51,7 @@ public final class TabFeature implements EditorFeature {
 
 	private void onKeyPressed(KeyEvent event) {
 		CodeEditor target = editor;
-		if (target == null || event.getCode() != KeyCode.TAB || !target.isEditable()
+		if (target == null || event.isConsumed() || event.getCode() != KeyCode.TAB || !target.isEditable()
 				|| !target.isTextAreaEvent(event)) {
 			return;
 		}

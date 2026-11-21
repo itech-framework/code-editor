@@ -54,6 +54,13 @@
 	-ce-diag-tooltip-background: #f3f3f3;
 	-ce-diag-tooltip-foreground: #3b3b3b;
 	-ce-diag-tooltip-border: #c8c8c8;
+
+	-ce-completion-background: #f3f3f3;
+	-ce-completion-foreground: #3b3b3b;
+	-ce-completion-border: #c8c8c8;
+	-ce-completion-selected-background: #0060c0;
+	-ce-completion-selected-foreground: #ffffff;
+	-ce-completion-kind: #616161;
 }
 
 .code-editor .code-area {
@@ -423,4 +430,54 @@
 
 .code-editor .diag-tooltip.diag-tooltip-info {
     -fx-border-color: -ce-diag-tooltip-border -ce-diag-tooltip-border -ce-diag-tooltip-border -ce-diag-info;
+}
+
+.code-editor .completion-popup {
+    -fx-background-color: -ce-completion-background;
+    -fx-background-insets: 0;
+    -fx-border-color: -ce-completion-border;
+    -fx-border-width: 1;
+    -fx-padding: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.35), 8, 0, 0, 2);
+}
+
+.code-editor .completion-popup .list-cell,
+.code-editor .completion-popup .list-cell:odd,
+.code-editor .completion-popup .list-cell:even {
+    -fx-background-color: transparent;
+    -fx-padding: 0 8 0 6;
+}
+
+.code-editor .completion-popup .list-cell:filled:selected,
+.code-editor .completion-popup .list-cell:filled:selected:hover {
+    -fx-background-color: -ce-completion-selected-background;
+}
+
+.code-editor .completion-popup .completion-label {
+    -fx-text-fill: -ce-completion-foreground;
+    -fx-font-size: 12px;
+}
+
+.code-editor .completion-popup .completion-kind {
+    -fx-text-fill: -ce-completion-kind;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-min-width: 12;
+}
+
+.code-editor .completion-popup .completion-kind-keyword {
+    -fx-text-fill: -ce-token-keyword;
+}
+
+.code-editor .completion-popup .completion-kind-variable {
+    -fx-text-fill: -ce-token-variable;
+}
+
+.code-editor .completion-popup .list-cell:filled:selected .completion-label,
+.code-editor .completion-popup .list-cell:filled:selected .completion-kind {
+    -fx-text-fill: -ce-completion-selected-foreground;
+}
+
+.code-editor .completion-popup .list-cell:filled:hover {
+    -fx-background-color: -ce-find-hover;
 }

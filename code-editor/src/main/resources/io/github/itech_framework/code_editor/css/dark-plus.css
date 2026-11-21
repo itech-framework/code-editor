@@ -53,4 +53,11 @@
     -ce-diag-tooltip-background: #252526;
     -ce-diag-tooltip-foreground: #cccccc;
     -ce-diag-tooltip-border: #454545;
+
+    -ce-completion-background: #252526;
+    -ce-completion-foreground: #cccccc;
+    -ce-completion-border: #454545;
+    -ce-completion-selected-background: #04395e;
+    -ce-completion-selected-foreground: #ffffff;
+    -ce-completion-kind: #9d9d9d;
 }

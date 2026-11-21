@@ -2,10 +2,12 @@ package io.github.itech_framework.code_editor.language;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 public final class EditorLanguage {
 
@@ -16,6 +18,7 @@ public final class EditorLanguage {
     private final List<BracketPair> autoClosingPairs;
     private final String lineComment;
     private final FormatterSpec formatterSpec;
+    private final List<String> keywords;
 
     private EditorLanguage(Builder builder) {
         this.id = builder.id;
@@ -27,6 +30,7 @@ public final class EditorLanguage {
                 : List.copyOf(builder.autoClosingPairs);
         this.lineComment = builder.lineComment;
         this.formatterSpec = builder.formatterSpec;
+        this.keywords = List.copyOf(builder.keywords);
     }
 
     public static Builder builder(String id) {
@@ -60,6 +64,10 @@ public final class EditorLanguage {
     public Optional<FormatterSpec> getFormatterSpec() {
         return Optional.ofNullable(formatterSpec);
     }
+    
+    public List<String> getKeywords() {
+        return keywords;
+    }
 
     static String normalizeId(String id) {
         if (id == null || id.isBlank()) {
@@ -92,7 +100,9 @@ public final class EditorLanguage {
         private String lineComment;
         
         private FormatterSpec formatterSpec;
-
+        
+        private final Set<String> keywords = new LinkedHashSet<>();
+        
         private Builder(String id) {
             this.id = normalizeId(id);
         }
@@ -142,6 +152,17 @@ public final class EditorLanguage {
         
         public Builder formatter(FormatterSpec spec) {
             this.formatterSpec = spec;
+            return this;
+        }
+        
+        public Builder keywords(Collection<String> values) {
+            Objects.requireNonNull(values, "keywords");
+            for (String value : values) {
+                if (value == null || value.isBlank()) {
+                    throw new IllegalArgumentException("Keyword must not be blank");
+                }
+                keywords.add(value.trim());
+            }
             return this;
         }
 
