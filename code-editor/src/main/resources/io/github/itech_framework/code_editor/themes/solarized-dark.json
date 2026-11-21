@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "id": "solarized-dark",
+  "name": "Solarized Dark",
+  "dark": true,
+  "colors": {
+    "background": "#002b36", "foreground": "#839496", "line-number": "#586e75", "line-number-active": "#93a1a1", "current-line": "#073642", "selection": "rgba(38, 139, 210, 0.35)", "caret": "#93a1a1", "scroll-thumb": "rgba(131, 148, 150, 0.35)", "scroll-thumb-hover": "rgba(131, 148, 150, 0.6)",
+    "token-keyword": "#859900", "token-keyword-control": "#cb4b16", "token-string": "#2aa198", "token-string-escape": "#cb4b16", "token-number": "#d33682", "token-comment": "#586e75", "token-type": "#b58900", "token-function": "#268bd2",
+    "token-variable": "#839496", "token-constant": "#cb4b16", "token-operator": "#859900", "token-punctuation": "#839496", "token-regexp": "#dc322f", "token-tag": "#268bd2", "token-attribute": "#93a1a1", "token-invalid": "#dc322f",
+    "bracket-match": "rgba(42, 161, 152, 0.3)", "bracket-match-border": "#2aa198",
+    "find-panel-background": "#073642", "find-panel-border": "#586e75", "find-foreground": "#93a1a1", "find-hint": "#657b83", "find-field-background": "#002b36", "find-field-border": "#586e75",
+    "find-field-border-focused": "#268bd2", "find-hover": "rgba(147, 161, 161, 0.15)", "find-active": "rgba(38, 139, 210, 0.35)", "find-error": "#dc322f",
+    "find-match": "rgba(181, 137, 0, 0.35)", "find-match-current": "rgba(203, 75, 22, 0.45)", "find-match-current-border": "#cb4b16",
+    "fold-header": "rgba(7, 54, 66, 0.9)", "fold-marker": "rgba(147, 161, 161, 0.25)", "fold-marker-text": "#93a1a1",
+    "diag-error": "#dc322f", "diag-warning": "#b58900", "diag-info": "#268bd2",
+    "diag-tooltip-background": "#073642", "diag-tooltip-foreground": "#93a1a1", "diag-tooltip-border": "#586e75",
+    "completion-background": "#073642", "completion-foreground": "#93a1a1", "completion-border": "#586e75",
+    "completion-selected-background": "#094959", "completion-selected-foreground": "#eee8d5", "completion-kind": "#657b83"
+  }
+}

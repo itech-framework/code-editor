@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "id": "monokai",
+  "name": "Monokai",
+  "dark": true,
+  "colors": {
+    "background": "#272822", "foreground": "#f8f8f2", "line-number": "#90908a", "line-number-active": "#f8f8f2", "current-line": "#3e3d32", "selection": "rgba(135, 139, 145, 0.5)", "caret": "#f8f8f0", "scroll-thumb": "rgba(165, 165, 165, 0.35)", "scroll-thumb-hover": "rgba(165, 165, 165, 0.6)",
+    "token-keyword": "#f92672", "token-keyword-control": "#f92672", "token-string": "#e6db74", "token-string-escape": "#ae81ff", "token-number": "#ae81ff", "token-comment": "#75715e", "token-type": "#66d9ef", "token-function": "#a6e22e",
+    "token-variable": "#f8f8f2", "token-constant": "#ae81ff", "token-operator": "#f92672", "token-punctuation": "#f8f8f2", "token-regexp": "#e6db74", "token-tag": "#f92672", "token-attribute": "#a6e22e", "token-invalid": "#ff5555",
+    "bracket-match": "rgba(230, 219, 116, 0.25)", "bracket-match-border": "#75715e",
+    "find-panel-background": "#1e1f1c", "find-panel-border": "#3e3d32", "find-foreground": "#f8f8f2", "find-hint": "#90908a", "find-field-background": "#3e3d32", "find-field-border": "#3e3d32",
+    "find-field-border-focused": "#66d9ef", "find-hover": "rgba(255, 255, 255, 0.1)", "find-active": "rgba(102, 217, 239, 0.3)", "find-error": "#f92672",
+    "find-match": "rgba(230, 219, 116, 0.3)", "find-match-current": "rgba(253, 151, 31, 0.45)", "find-match-current-border": "#fd971f",
+    "fold-header": "rgba(73, 72, 62, 0.7)", "fold-marker": "rgba(248, 248, 242, 0.2)", "fold-marker-text": "#cfcfc2",
+    "diag-error": "#f92672", "diag-warning": "#fd971f", "diag-info": "#66d9ef",
+    "diag-tooltip-background": "#1e1f1c", "diag-tooltip-foreground": "#f8f8f2", "diag-tooltip-border": "#3e3d32",
+    "completion-background": "#1e1f1c", "completion-foreground": "#f8f8f2", "completion-border": "#3e3d32",
+    "completion-selected-background": "#49483e", "completion-selected-foreground": "#ffffff", "completion-kind": "#90908a"
+  }
+}

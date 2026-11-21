@@ -76,6 +76,7 @@
 }
 
 .code-editor .code-area .selection {
+	-fx-highlight-fill: -ce-selection;
 	-fx-fill: -ce-selection;
 }
 

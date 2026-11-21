@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "id": "github-light",
+  "name": "GitHub Light",
+  "dark": false,
+  "colors": {
+    "background": "#ffffff", "foreground": "#24292f", "line-number": "#8c959f", "line-number-active": "#24292f", "current-line": "#f6f8fa", "selection": "#b6e3ff", "caret": "#24292f", "scroll-thumb": "rgba(140, 149, 159, 0.4)", "scroll-thumb-hover": "rgba(140, 149, 159, 0.7)",
+    "token-keyword": "#cf222e", "token-keyword-control": "#cf222e", "token-string": "#0a3069", "token-string-escape": "#116329", "token-number": "#0550ae", "token-comment": "#6e7781", "token-type": "#953800", "token-function": "#8250df",
+    "token-variable": "#24292f", "token-constant": "#0550ae", "token-operator": "#24292f", "token-punctuation": "#24292f", "token-regexp": "#116329", "token-tag": "#116329", "token-attribute": "#0550ae", "token-invalid": "#82071e",
+    "bracket-match": "rgba(9, 105, 218, 0.15)", "bracket-match-border": "#54aeff",
+    "find-panel-background": "#f6f8fa", "find-panel-border": "#d0d7de", "find-foreground": "#24292f", "find-hint": "#6e7781", "find-field-background": "#ffffff", "find-field-border": "#d0d7de",
+    "find-field-border-focused": "#0969da", "find-hover": "rgba(175, 184, 193, 0.3)", "find-active": "rgba(9, 105, 218, 0.2)", "find-error": "#cf222e",
+    "find-match": "rgba(255, 223, 93, 0.5)", "find-match-current": "rgba(255, 140, 0, 0.4)", "find-match-current-border": "#bf8700",
+    "fold-header": "rgba(182, 227, 255, 0.3)", "fold-marker": "rgba(140, 149, 159, 0.3)", "fold-marker-text": "#57606a",
+    "diag-error": "#cf222e", "diag-warning": "#9a6700", "diag-info": "#0969da",
+    "diag-tooltip-background": "#f6f8fa", "diag-tooltip-foreground": "#24292f", "diag-tooltip-border": "#d0d7de",
+    "completion-background": "#ffffff", "completion-foreground": "#24292f", "completion-border": "#d0d7de",
+    "completion-selected-background": "#ddf4ff", "completion-selected-foreground": "#0a3069", "completion-kind": "#6e7781"
+  }
+}

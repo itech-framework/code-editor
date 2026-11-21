@@ -140,7 +140,13 @@ public class DemoApp extends Application {
 
         Spinner<Integer> size = new Spinner<>(8, 40, 14);
         size.valueProperty().addListener((obs, old, value) -> editor.setFontSize(value));
-        
+        ThemeRegistry.getDefault().register(EditorTheme.builder("ocean", "Ocean", true)
+                .color("background", "#0f1b2d")
+                .color("current-line", "#14263f")
+                .color("selection", "#1d4a7a")
+                .color("token-keyword", "#ff9d00")
+                .color("token-string", "#3ad900")
+                .build());
         ComboBox<String> theme = new ComboBox<>(FXCollections.observableArrayList(ThemeRegistry.getDefault().ids()));
         theme.setValue(editor.getTheme());
         theme.setOnShowing(event -> {
