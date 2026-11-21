@@ -21,6 +21,7 @@ public final class TemplateLanguages {
                 .extensions(template.extensions())
                 .autoClosingPairs(template.autoClosingPairs())
                 .lineComment(template.lineComment())
+                .formatter(template.formatter())
                 .tokenizer(new TemplateTokenizer(template))
                 .build();
     }
