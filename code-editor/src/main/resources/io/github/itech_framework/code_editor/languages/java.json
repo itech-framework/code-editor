@@ -4,6 +4,7 @@
   "name": "Java",
   "extensions": ["java"],
   "lineComment": "//",
+  "formatter": { "type": "brace" },
   "states": {
     "root": [
       { "match": "//.*", "scope": "comment.line" },

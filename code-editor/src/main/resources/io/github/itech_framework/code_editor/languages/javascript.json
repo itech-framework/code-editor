@@ -5,6 +5,7 @@
   "extensions": ["js", "mjs", "cjs"],
   "autoClosingPairs": [["(", ")"], ["[", "]"], ["{", "}"], ["\"", "\""], ["'", "'"], ["`", "`"]],
   "lineComment": "//",
+  "formatter": { "type": "brace" },
   "states": {
     "root": [
       { "match": "//.*", "scope": "comment.line" },

@@ -18,6 +18,7 @@ import java.util.regex.PatternSyntaxException;
 import io.github.itech_framework.code_editor.internal.json.JsonException;
 import io.github.itech_framework.code_editor.internal.json.JsonReader;
 import io.github.itech_framework.code_editor.language.BracketPair;
+import io.github.itech_framework.code_editor.language.FormatterSpec;
 
 public final class TemplateLoader {
 
@@ -25,7 +26,10 @@ public final class TemplateLoader {
     public static final String DEFAULT_START = "root";
 
     private static final Set<String> TOP_KEYS =
-            Set.of("version", "id", "name", "extensions", "start", "autoClosingPairs", "lineComment", "states");
+            Set.of("version", "id", "name", "extensions", "start", "autoClosingPairs", "lineComment", "formatter", "states");
+
+    private static final Set<String> FORMATTER_KEYS =
+            Set.of("type", "brackets", "trimTrailingWhitespace", "insertFinalNewline");
     
     private static final Set<String> RULE_KEYS =
             Set.of("match", "words", "begin", "end", "eol", "scope", "next", "push", "pop", "caseSensitive");
@@ -129,7 +133,9 @@ public final class TemplateLoader {
                 throw fail("lineComment", "must be a single line");
             }
         }
-        return new LanguageTemplate(SUPPORTED_VERSION, id, displayName, extensions, start, pairs, lineComment, states);
+        FormatterSpec formatter = formatter(map.get("formatter"));
+        return new LanguageTemplate(SUPPORTED_VERSION, id, displayName, extensions, start, pairs, lineComment,
+                formatter, states);
     }
 
     private List<BracketPair> autoClosingPairs(Object value) {
@@ -161,6 +167,79 @@ public final class TemplateLoader {
             pairs.add(new BracketPair(chars[0], chars[1]));
         }
         return pairs;
+    }
+    
+    private FormatterSpec formatter(Object value) {
+        if (value == null) {
+            return null;
+        }
+        Map<String, Object> map = object(value, "formatter");
+        rejectUnknown(map, FORMATTER_KEYS, "formatter");
+        String type = string(map, "type", "formatter", true);
+        FormatterSpec.Type kind;
+        switch (type) {
+            case "json" -> kind = FormatterSpec.Type.JSON;
+            case "brace" -> kind = FormatterSpec.Type.BRACE;
+            default -> throw fail("formatter.type", "unknown formatter type '" + type + "'. Supported types: brace, json");
+        }
+        if (kind == FormatterSpec.Type.JSON) {
+            for (String key : List.of("brackets", "trimTrailingWhitespace", "insertFinalNewline")) {
+                if (map.containsKey(key)) {
+                    throw fail(join("formatter", key), "is only allowed with type 'brace'");
+                }
+            }
+            return FormatterSpec.json();
+        }
+        List<BracketPair> brackets = formatterBrackets(map.get("brackets"));
+        boolean trim = flag(map, "trimTrailingWhitespace", true);
+        boolean finalNewline = flag(map, "insertFinalNewline", false);
+        return new FormatterSpec(kind, brackets, trim, finalNewline);
+    }
+
+    private List<BracketPair> formatterBrackets(Object value) {
+        if (value == null) {
+            return FormatterSpec.DEFAULT_BRACKETS;
+        }
+        List<Object> list = array(value, "formatter.brackets");
+        if (list.isEmpty()) {
+            throw fail("formatter.brackets", "must contain at least one pair");
+        }
+        List<BracketPair> pairs = new ArrayList<>();
+        Set<Character> openers = new LinkedHashSet<>();
+        Set<Character> closers = new LinkedHashSet<>();
+        for (int i = 0; i < list.size(); i++) {
+            String field = "formatter.brackets[" + i + "]";
+            if (!(list.get(i) instanceof String text) || text.length() != 2) {
+                throw fail(field, "must be a string of exactly two characters: the opening and the closing bracket");
+            }
+            char open = text.charAt(0);
+            char close = text.charAt(1);
+            if (Character.isWhitespace(open) || Character.isWhitespace(close)) {
+                throw fail(field, "characters must not be whitespace");
+            }
+            if (open == close) {
+                throw fail(field, "the opening and the closing character must differ");
+            }
+            if (!openers.add(open)) {
+                throw fail(field, "duplicate opening character '" + open + "'");
+            }
+            if (!closers.add(close)) {
+                throw fail(field, "duplicate closing character '" + close + "'");
+            }
+            pairs.add(new BracketPair(open, close));
+        }
+        return pairs;
+    }
+
+    private boolean flag(Map<String, Object> map, String key, boolean fallback) {
+        Object value = map.get(key);
+        if (value == null) {
+            return fallback;
+        }
+        if (!(value instanceof Boolean flag)) {
+            throw fail(join("formatter", key), "must be true or false");
+        }
+        return flag;
     }
 
     private TemplateRule rule(Object value, String path) {

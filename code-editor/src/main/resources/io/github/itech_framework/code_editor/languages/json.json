@@ -5,6 +5,7 @@
   "extensions": ["json", "jsonc"],
   "autoClosingPairs": [["[", "]"], ["{", "}"], ["\"", "\""]],
   "lineComment": "//",
+  "formatter": { "type": "json" },
   "states": {
     "root": [
       { "match": "//.*", "scope": "comment.line" },

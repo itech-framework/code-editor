@@ -15,6 +15,7 @@ public final class EditorLanguage {
     private final Tokenizer tokenizer;
     private final List<BracketPair> autoClosingPairs;
     private final String lineComment;
+    private final FormatterSpec formatterSpec;
 
     private EditorLanguage(Builder builder) {
         this.id = builder.id;
@@ -25,6 +26,7 @@ public final class EditorLanguage {
                 ? BracketPair.DEFAULT_AUTO_CLOSING
                 : List.copyOf(builder.autoClosingPairs);
         this.lineComment = builder.lineComment;
+        this.formatterSpec = builder.formatterSpec;
     }
 
     public static Builder builder(String id) {
@@ -53,6 +55,10 @@ public final class EditorLanguage {
 
     public Optional<String> getLineComment() {
         return Optional.ofNullable(lineComment);
+    }
+    
+    public Optional<FormatterSpec> getFormatterSpec() {
+        return Optional.ofNullable(formatterSpec);
     }
 
     static String normalizeId(String id) {
@@ -84,6 +90,8 @@ public final class EditorLanguage {
         private Tokenizer tokenizer;
         private List<BracketPair> autoClosingPairs;
         private String lineComment;
+        
+        private FormatterSpec formatterSpec;
 
         private Builder(String id) {
             this.id = normalizeId(id);
@@ -129,6 +137,11 @@ public final class EditorLanguage {
                 throw new IllegalArgumentException("Line comment must be a non-blank single line");
             }
             this.lineComment = value;
+            return this;
+        }
+        
+        public Builder formatter(FormatterSpec spec) {
+            this.formatterSpec = spec;
             return this;
         }
 
