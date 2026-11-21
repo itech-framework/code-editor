@@ -22,7 +22,10 @@ import io.github.itech_framework.code_editor.language.template.LanguageTemplate;
 import io.github.itech_framework.code_editor.language.template.TemplateException;
 import io.github.itech_framework.code_editor.language.template.TemplateLanguages;
 import io.github.itech_framework.code_editor.language.template.TemplateLoader;
-import io.github.itech_framework.code_editor.theme.ThemeManager;
+import io.github.itech_framework.code_editor.theme.EditorTheme;
+import io.github.itech_framework.code_editor.theme.ThemeException;
+import io.github.itech_framework.code_editor.theme.ThemeLoader;
+import io.github.itech_framework.code_editor.theme.ThemeRegistry;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -138,14 +141,21 @@ public class DemoApp extends Application {
         Spinner<Integer> size = new Spinner<>(8, 40, 14);
         size.valueProperty().addListener((obs, old, value) -> editor.setFontSize(value));
         
-        ComboBox<String> theme = new ComboBox<>(FXCollections.observableArrayList(ThemeManager.ids()));
+        ComboBox<String> theme = new ComboBox<>(FXCollections.observableArrayList(ThemeRegistry.getDefault().ids()));
         theme.setValue(editor.getTheme());
+        theme.setOnShowing(event -> {
+            String current = theme.getValue();
+            theme.getItems().setAll(ThemeRegistry.getDefault().ids());
+            theme.setValue(current);
+        });
         theme.valueProperty().addListener((obs, old, value) -> {
             if (value != null) {
                 editor.setTheme(value);
             }
         });
+        editor.themeProperty().addListener((obs, old, value) -> theme.setValue(value));
 
+        
         Label status = new Label();
         Runnable refresh = () -> {
             List<Diagnostic> found = editor.getDiagnostics();
@@ -209,6 +219,30 @@ public class DemoApp extends Application {
                 status.setText("Cannot read " + file + ": " + ex.getMessage());
             }
         });
+        
+        Button loadTheme = new Button("Load theme...");
+        loadTheme.setOnAction(event -> {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Select a theme");
+            chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Themes (*.json)", "*.json"));
+            Path folder = Path.of("themes");
+            if (Files.isDirectory(folder)) {
+                chooser.setInitialDirectory(folder.toFile());
+            }
+            File file = chooser.showOpenDialog(stage);
+            if (file == null) {
+                return;
+            }
+            try {
+                EditorTheme loaded = ThemeLoader.load(file.toPath());
+                editor.setTheme(loaded);
+                status.setText("Loaded theme " + loaded.getId());
+            } catch (ThemeException ex) {
+                status.setText(ex.getMessage());
+            } catch (IOException ex) {
+                status.setText("Cannot read " + file + ": " + ex.getMessage());
+            }
+        });
 
         Button complete = new Button("Show completions");
         complete.setFocusTraversable(false);
@@ -259,7 +293,7 @@ public class DemoApp extends Application {
         ToolBar bar = new ToolBar(editable, lineNumbers, currentLine, autoIndent, autoClose, new Label("Tab size"),
                 tabSize, spaces, new Label("Font size"), size, new Label("Theme"), theme, new Label("Language"),
                 language, unknown, sample, load, find, complete, autoComplete, dotProvider);
-        
+        bar.getItems().add(loadTheme);
         BorderPane root = new BorderPane(editor);
         root.setTop(bar);
         root.setBottom(status);

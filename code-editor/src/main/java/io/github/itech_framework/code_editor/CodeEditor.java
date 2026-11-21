@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.function.Consumer;
 
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.model.StyleSpan;
@@ -50,7 +51,8 @@ import io.github.itech_framework.code_editor.internal.SyntaxHighlighter;
 import io.github.itech_framework.code_editor.language.EditorLanguage;
 import io.github.itech_framework.code_editor.language.LanguageRegistry;
 import io.github.itech_framework.code_editor.theme.EditorTheme;
-import io.github.itech_framework.code_editor.theme.ThemeManager;
+import io.github.itech_framework.code_editor.theme.ThemeRegistry;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -102,7 +104,7 @@ public class CodeEditor extends Control {
 
 	private final DoubleProperty fontSize = new SimpleDoubleProperty(this, "fontSize", DEFAULT_FONT_SIZE);
 
-	private final StringProperty theme = new SimpleStringProperty(this, "theme", ThemeManager.DARK_PLUS);
+	private final StringProperty theme = new SimpleStringProperty(this, "theme", ThemeRegistry.DARK_PLUS);
 
 	private final StringProperty language = new SimpleStringProperty(this, "language", LanguageRegistry.PLAIN_TEXT);
 
@@ -143,7 +145,9 @@ public class CodeEditor extends Control {
 
 	private final ExtraCarets extraCarets = new ExtraCarets(area);
 
-	private String appliedStylesheet;
+	private List<String> appliedStylesheets = List.of();
+
+	private final Consumer<EditorTheme> themeListener = this::onThemeRegistered;
 
 	private final SyntaxHighlighter highlighter;
 
@@ -159,6 +163,7 @@ public class CodeEditor extends Control {
 		fontFamily.addListener((obs, old, value) -> applyFont());
 		fontSize.addListener((obs, old, value) -> applyFont());
 		theme.addListener((obs, old, value) -> applyTheme());
+		ThemeRegistry.getDefault().addWeakListener(themeListener);
 		language.addListener((obs, old, value) -> applyLanguage());
 		updateGutter();
 		updateCurrentLine();
@@ -501,9 +506,15 @@ public class CodeEditor extends Control {
 	}
 
 	public final void setTheme(String id) {
-		theme.set(ThemeManager.require(id).getId());
+		theme.set(ThemeRegistry.getDefault().require(id).getId());
 	}
 
+	public final void setTheme(EditorTheme value) {
+		Objects.requireNonNull(value, "theme");
+		ThemeRegistry.getDefault().register(value);
+		theme.set(value.getId());
+	}
+	
 	public final StringProperty themeProperty() {
 		return theme;
 	}
@@ -854,18 +865,27 @@ public class CodeEditor extends Control {
 		area.setStyle("-fx-font-family: " + css + "; -fx-font-size: " + size + "px;");
 	}
 
+	private void onThemeRegistered(EditorTheme registered) {
+		if (!registered.getId().equals(getTheme())) {
+			return;
+		}
+		if (Platform.isFxApplicationThread()) {
+			applyTheme();
+		} else {
+			Platform.runLater(this::applyTheme);
+		}
+	}
+	
 	private void applyTheme() {
-		Optional<EditorTheme> found = ThemeManager.find(getTheme());
+		Optional<EditorTheme> found = ThemeRegistry.getDefault().find(getTheme());
 		if (found.isEmpty()) {
 			LOG.log(System.Logger.Level.WARNING, "Unknown editor theme ''{0}'', keeping the current theme", getTheme());
 			return;
 		}
-		String stylesheet = found.get().getStylesheet();
-		if (appliedStylesheet != null) {
-			getStylesheets().remove(appliedStylesheet);
-		}
-		getStylesheets().add(stylesheet);
-		appliedStylesheet = stylesheet;
+		List<String> sheets = found.get().getStylesheets();
+		getStylesheets().removeAll(appliedStylesheets);
+		getStylesheets().addAll(sheets);
+		appliedStylesheets = sheets;
 	}
 
 	private void applyLanguage() {
