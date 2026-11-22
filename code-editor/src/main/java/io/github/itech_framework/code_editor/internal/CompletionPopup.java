@@ -5,6 +5,8 @@ import java.util.function.Consumer;
 
 import io.github.itech_framework.code_editor.completion.CompletionItem;
 import javafx.geometry.Pos;
+import javafx.geometry.Rectangle2D;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -35,6 +37,8 @@ public final class CompletionPopup extends ListView<CompletionItem> {
     private int top;
 
     private Consumer<CompletionItem> acceptHandler;
+    
+    private final FloatingHost host = new FloatingHost(this, this::dismiss);
 
     public CompletionPopup() {
         getStyleClass().add("completion-popup");
@@ -51,13 +55,9 @@ public final class CompletionPopup extends ListView<CompletionItem> {
 
     public void show(List<CompletionItem> items, int selectedIndex, double x, double yBelow, double yAbove,
             double boundsWidth, double boundsHeight) {
-        getItems().setAll(items);
-        int rows = Math.min(MAX_ROWS, items.size());
-        double width = measureWidth(items);
-        double height = rows * ROW_HEIGHT + 2;
-        setPrefSize(width, height);
-        setMinSize(width, height);
-        setMaxSize(width, height);
+        double[] size = prepare(items);
+        double width = size[0];
+        double height = size[1];
         double left = x;
         if (left + width > boundsWidth - MARGIN) {
             left = Math.max(MARGIN, boundsWidth - width - MARGIN);
@@ -75,10 +75,42 @@ public final class CompletionPopup extends ListView<CompletionItem> {
         select(selectedIndex);
     }
 
+    public void showInWindow(Control owner, List<CompletionItem> items, int selectedIndex, double screenX,
+            double screenBelow, double screenAbove) {
+        double[] size = prepare(items);
+        Rectangle2D screen = FloatingHost.screenBounds(screenX, screenBelow);
+        double left = Math.max(screen.getMinX() + MARGIN,
+                Math.min(screenX, screen.getMaxX() - size[0] - MARGIN));
+        double topPosition = screenBelow + GAP;
+        if (topPosition + size[1] > screen.getMaxY() - MARGIN) {
+            topPosition = Math.max(screen.getMinY() + MARGIN, screenAbove - size[1] - GAP);
+        }
+        setTranslateX(0);
+        setTranslateY(0);
+        setVisible(true);
+        host.show(owner, left, topPosition);
+        applyCss();
+        layout();
+        top = 0;
+        select(selectedIndex);
+    }
+
     public void dismiss() {
+        host.hide();
         setVisible(false);
         getItems().clear();
         top = 0;
+    }
+
+    private double[] prepare(List<CompletionItem> items) {
+        getItems().setAll(items);
+        int rows = Math.min(MAX_ROWS, items.size());
+        double width = measureWidth(items);
+        double height = rows * ROW_HEIGHT + 2;
+        setPrefSize(width, height);
+        setMinSize(width, height);
+        setMaxSize(width, height);
+        return new double[] { width, height };
     }
 
     public void move(int delta) {

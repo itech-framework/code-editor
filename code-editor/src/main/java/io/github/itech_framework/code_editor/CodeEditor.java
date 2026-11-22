@@ -107,8 +107,8 @@ public class CodeEditor extends Control {
 	private static final double SINGLE_LINE_PADDING = 4;
 
 	private static final List<String> SINGLE_LINE_DISABLED = List.of("auto-indent", "auto-close", "tab-indent", "find",
-			"go-to-line", "line-edit", "fold", "multi-caret", "format", "completion", "diagnostic-hover");
-
+			"go-to-line", "line-edit", "fold", "multi-caret", "format");
+	
 	private static volatile String baseStylesheetUrl;
 
 	private final CodeArea area = new CodeArea();

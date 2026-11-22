@@ -121,7 +121,16 @@ public final class DiagnosticHoverFeature implements EditorFeature {
             return;
         }
         Diagnostic best = pick(target.getDiagnostics(), index.getAsInt(), target.getLength());
-        if (best == null || !(tooltip.getParent() instanceof Region parent)) {
+        if (best == null) {
+            return;
+        }
+        if (target.isSingleLine()) {
+            shown = best;
+            watch(window);
+            tooltip.showInWindow(target, best, screenX, screenY);
+            return;
+        }
+        if (!(tooltip.getParent() instanceof Region parent)) {
             return;
         }
         Point2D local = parent.screenToLocal(screenX, screenY);

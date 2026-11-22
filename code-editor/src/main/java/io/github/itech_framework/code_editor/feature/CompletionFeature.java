@@ -274,7 +274,7 @@ public final class CompletionFeature implements EditorFeature {
 			return;
 		}
 		Optional<Bounds> caretBounds = target.getCaretBoundsOnScreen();
-		if (caretBounds.isEmpty() || !(popup.getParent() instanceof Region parent)) {
+		if (caretBounds.isEmpty()) {
 			close();
 			return;
 		}
@@ -287,12 +287,6 @@ public final class CompletionFeature implements EditorFeature {
 				screenX = startBounds.get().getMinX();
 			}
 		}
-		Point2D below = parent.screenToLocal(screenX, caret.getMaxY());
-		Point2D above = parent.screenToLocal(screenX, caret.getMinY());
-		if (below == null || above == null) {
-			close();
-			return;
-		}
 		CompletionItem previous = popup.isVisible() ? popup.selectedItem() : null;
 		int selected = 0;
 		if (previous != null) {
@@ -302,6 +296,20 @@ public final class CompletionFeature implements EditorFeature {
 					break;
 				}
 			}
+		}
+		if (target.isSingleLine()) {
+			popup.showInWindow(target, items, selected, screenX, caret.getMaxY(), caret.getMinY());
+			return;
+		}
+		if (!(popup.getParent() instanceof Region parent)) {
+			close();
+			return;
+		}
+		Point2D below = parent.screenToLocal(screenX, caret.getMaxY());
+		Point2D above = parent.screenToLocal(screenX, caret.getMinY());
+		if (below == null || above == null) {
+			close();
+			return;
 		}
 		popup.show(items, selected, below.getX(), below.getY(), above.getY(), parent.getWidth(), parent.getHeight());
 	}
