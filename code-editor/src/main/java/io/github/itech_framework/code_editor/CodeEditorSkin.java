@@ -10,6 +10,7 @@ import io.github.itech_framework.code_editor.internal.FindPanel;
 import io.github.itech_framework.code_editor.internal.GoToLinePanel;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SkinBase;
 import javafx.scene.layout.StackPane;
 
@@ -35,6 +36,14 @@ final class CodeEditorSkin extends SkinBase<CodeEditor> {
         StackPane.setAlignment(completionPopup, Pos.TOP_LEFT);
         stack.getChildren().addAll(scrollPane, findPanel, goToPanel, tooltip, completionPopup);
         getChildren().add(stack);
+        registerChangeListener(editor.singleLineProperty(), property -> applyScrollBars());
+        applyScrollBars();
+    }
+
+    private void applyScrollBars() {
+        ScrollBarPolicy policy = getSkinnable().isSingleLine() ? ScrollBarPolicy.NEVER : ScrollBarPolicy.AS_NEEDED;
+        scrollPane.setHbarPolicy(policy);
+        scrollPane.setVbarPolicy(policy);
     }
 
     @Override

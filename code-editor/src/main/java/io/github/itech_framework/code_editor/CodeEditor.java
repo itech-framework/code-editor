@@ -4,10 +4,12 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.fxmisc.richtext.CodeArea;
@@ -34,6 +36,7 @@ import io.github.itech_framework.code_editor.feature.FormatFeature;
 import io.github.itech_framework.code_editor.feature.GoToLineFeature;
 import io.github.itech_framework.code_editor.feature.LineEditFeature;
 import io.github.itech_framework.code_editor.feature.MultiCaretFeature;
+import io.github.itech_framework.code_editor.feature.SingleLineFeature;
 import io.github.itech_framework.code_editor.feature.TabFeature;
 import io.github.itech_framework.code_editor.formatting.CodeFormatter;
 import io.github.itech_framework.code_editor.internal.BuiltInCompletion;
@@ -48,6 +51,7 @@ import io.github.itech_framework.code_editor.internal.FontSupport;
 import io.github.itech_framework.code_editor.internal.GoToLineLogic;
 import io.github.itech_framework.code_editor.internal.GoToLinePanel;
 import io.github.itech_framework.code_editor.internal.LineNumberGutter;
+import io.github.itech_framework.code_editor.internal.SingleLineText;
 import io.github.itech_framework.code_editor.internal.SyntaxHighlighter;
 import io.github.itech_framework.code_editor.language.EditorLanguage;
 import io.github.itech_framework.code_editor.language.LanguageRegistry;
@@ -78,6 +82,9 @@ import javafx.scene.Node;
 import javafx.scene.control.Control;
 import javafx.scene.control.IndexRange;
 import javafx.scene.control.Skin;
+import javafx.scene.layout.Region;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 
 public class CodeEditor extends Control {
 
@@ -92,6 +99,15 @@ public class CodeEditor extends Control {
 	private static final String BASE_STYLESHEET = "css/base.css";
 
 	private static final String NO_CURRENT_LINE = "no-current-line";
+	
+	private static final String SINGLE_LINE_CLASS = "single-line";
+	
+	private static final double DEFAULT_PREF_HEIGHT = 400;
+
+	private static final double SINGLE_LINE_PADDING = 4;
+
+	private static final List<String> SINGLE_LINE_DISABLED = List.of("auto-indent", "auto-close", "tab-indent", "find",
+			"go-to-line", "line-edit", "fold", "multi-caret", "format", "completion", "diagnostic-hover");
 
 	private static volatile String baseStylesheetUrl;
 
@@ -113,6 +129,10 @@ public class CodeEditor extends Control {
 
 	private final BooleanProperty insertSpaces = new SimpleBooleanProperty(this, "insertSpaces", true);
 
+	private final BooleanProperty singleLine = new SimpleBooleanProperty(this, "singleLine", false);
+
+	private final Set<String> disabledBySingleLine = new HashSet<>();
+	
 	private final EditorFeatures features = new EditorFeatures(this);
 
 	private final ObjectProperty<DiagnosticsProvider> diagnosticsProvider = new SimpleObjectProperty<>(this,
@@ -156,7 +176,7 @@ public class CodeEditor extends Control {
 		getStyleClass().add("code-editor");
 		setFocusTraversable(false);
 		setMinSize(0, 0);
-		setPrefSize(600, 400);
+		setPrefSize(600, DEFAULT_PREF_HEIGHT);
 		
 		EditorInternals.attach(this, new EditorInternals(findPanel, goToLinePanel, diagnosticTooltip, completionPopup, foldState));
 		
@@ -169,6 +189,7 @@ public class CodeEditor extends Control {
 		theme.addListener((obs, old, value) -> applyTheme());
 		ThemeRegistry.getDefault().addWeakListener(themeListener);
 		language.addListener((obs, old, value) -> applyLanguage());
+		singleLine.addListener((obs, old, value) -> applySingleLine());
 		updateGutter();
 		updateCurrentLine();
 		applyFont();
@@ -198,6 +219,7 @@ public class CodeEditor extends Control {
 		features.register(new DiagnosticsFeature());
 		features.register(new DiagnosticHoverFeature());
 		features.register(new FormatFeature());
+		features.register(new SingleLineFeature());
 	}
 
 	public final String getText() {
@@ -206,7 +228,7 @@ public class CodeEditor extends Control {
 
 	public final void setText(String text) {
 		extraCarets.clear();
-		area.replaceText(text == null ? "" : text);
+		area.replaceText(normalize(text));
 		area.getUndoManager().forgetHistory();
 	}
 
@@ -303,7 +325,7 @@ public class CodeEditor extends Control {
 	}
 
 	public final void replaceText(int start, int end, String text) {
-		area.replaceText(start, end, text == null ? "" : text);
+		area.replaceText(start, end, normalize(text));
 	}
 
 	@FunctionalInterface
@@ -553,6 +575,18 @@ public class CodeEditor extends Control {
 
 	public final BooleanProperty insertSpacesProperty() {
 		return insertSpaces;
+	}
+	
+	public final boolean isSingleLine() {
+		return singleLine.get();
+	}
+
+	public final void setSingleLine(boolean value) {
+		singleLine.set(value);
+	}
+
+	public final BooleanProperty singleLineProperty() {
+		return singleLine;
 	}
 
 	public final String getIndentUnit() {
@@ -837,18 +871,67 @@ public class CodeEditor extends Control {
 	}
 
 	private void updateCurrentLine() {
-		if (isHighlightCurrentLine()) {
+		if (isHighlightCurrentLine() && !isSingleLine()) {
 			getStyleClass().remove(NO_CURRENT_LINE);
 		} else if (!getStyleClass().contains(NO_CURRENT_LINE)) {
 			getStyleClass().add(NO_CURRENT_LINE);
 		}
 	}
 
+	private String normalize(String text) {
+		String value = text == null ? "" : text;
+		return isSingleLine() ? SingleLineText.strip(value) : value;
+	}
+
+	private void applySingleLine() {
+		updateGutter();
+		updateCurrentLine();
+		if (isSingleLine()) {
+			if (!getStyleClass().contains(SINGLE_LINE_CLASS)) {
+				getStyleClass().add(SINGLE_LINE_CLASS);
+			}
+			for (String id : SINGLE_LINE_DISABLED) {
+				if (features.isEnabled(id)) {
+					features.setEnabled(id, false);
+					disabledBySingleLine.add(id);
+				}
+			}
+			String text = area.getText();
+			String stripped = SingleLineText.strip(text);
+			if (!stripped.equals(text)) {
+				area.replaceText(stripped);
+			}
+			updateSingleLineHeight();
+		} else {
+			getStyleClass().remove(SINGLE_LINE_CLASS);
+			for (String id : disabledBySingleLine) {
+				features.setEnabled(id, true);
+			}
+			disabledBySingleLine.clear();
+			setMinHeight(0);
+			setPrefHeight(DEFAULT_PREF_HEIGHT);
+			setMaxHeight(Region.USE_COMPUTED_SIZE);
+		}
+	}
+
+	private void updateSingleLineHeight() {
+		if (!isSingleLine()) {
+			return;
+		}
+		Text probe = new Text("Ag");
+		probe.setFont(Font.font(FontSupport.resolve(getFontFamily()), Math.max(1.0, getFontSize())));
+		double height = Math.ceil(probe.getLayoutBounds().getHeight()) + 2 * SINGLE_LINE_PADDING;
+		setMinHeight(height);
+		setPrefHeight(height);
+		setMaxHeight(height);
+	}
+	
 	private void applyFont() {
 		String family = FontSupport.resolve(getFontFamily());
 		String css = FontSupport.MONOSPACE.equals(family) ? family : "'" + family + "'";
 		double size = Math.max(1.0, getFontSize());
 		area.setStyle("-fx-font-family: " + css + "; -fx-font-size: " + size + "px;");
+		updateSingleLineHeight();
 	}
 
 	private void onThemeRegistered(EditorTheme registered) {
