@@ -330,6 +330,6 @@ LanguageRegistry.getDefault().register(EditorLanguage.builder("hashy")
         .build());
 ```
 
-A `Token` has start and end offsets inside the line and a scope, as described in [languages.md](languages.md). The line has no line break. Use an enum or a record for your state types. The brace formatter and the lexical diagnostics compare states with `equals`, and an object that only equals itself breaks that.
+A `Token` has start and end offsets inside the line and a scope, as described in [languages.md](languages.md). The line has no line break. Use an enum or a record for your state types. The highlighter, the brace formatter and the lexical diagnostics compare states with `equals`. The highlighter uses it to stop re-coloring once a line starts in the same state as before. If your states never equal each other, every edit re-colors the rest of the document.
 
 The builder also takes `autoClosingPairs`, `formatter` (a `FormatterSpec`) and `keywords`. The keywords feed the completion list.
